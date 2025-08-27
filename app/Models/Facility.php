@@ -3,9 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
-use App\Models\Service;
-use App\Models\Equipment;
-use App\Models\Project;
+use Illuminate\Database\Eloquent\Builder;
 
 class Facility extends Model
 {
@@ -38,5 +36,45 @@ class Facility extends Model
     public function projects()
     {
         return $this->hasMany(Project::class, 'facility_id');
+    }
+
+    // 🔹 Query scopes
+    public function scopeByType(Builder $query, ?string $type): Builder
+    {
+        return $type ? $query->where('facility_type', $type) : $query;
+    }
+
+    public function scopeByPartner(Builder $query, ?string $partner): Builder
+    {
+        return $partner ? $query->where('partner_organization', $partner) : $query;
+    }
+
+    public function scopeSearch(Builder $query, string $term): Builder
+    {
+        return $query->where(function ($q) use ($term) {
+            $q->where('name', 'LIKE', "%{$term}%")
+              ->orWhere('location', 'LIKE', "%{$term}%")
+              ->orWhere('description', 'LIKE', "%{$term}%");
+        });
+    }
+
+    public function scopeWithCapability(Builder $query, string $capability): Builder
+    {
+        return $query->whereJsonContains('capabilities', $capability);
+    }
+
+    // 🔹 Safeguard methods
+    public function canBeDeleted(): bool
+    {
+        // Example: block deletion if linked to any projects
+        return $this->projects()->count() === 0;
+    }
+
+    public function getDeletionBlockReason(): string
+    {
+        if ($this->projects()->count() > 0) {
+            return 'Facility cannot be deleted because it has active projects.';
+        }
+        return 'Unknown reason';
     }
 }
