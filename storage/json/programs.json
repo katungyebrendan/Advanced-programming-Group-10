@@ -1,0 +1,34 @@
+[
+  {
+    "program_id": 1,
+    "name": "Smart Agriculture Program",
+    "description": "Supporting innovation in agriculture through IoT and automation to boost food security.",
+    "national_alignment": "NDPIII - Agro-Industrialization",
+    "focus_areas": ["IoT", "Automation", "Smart Sensors"],
+    "phases": ["Cross-Skilling", "Collaboration", "Technical Skills", "Prototyping", "Commercialization"],
+    "projects": [
+      { "project_id": 101, "name": "Smart Irrigation System" },
+      { "project_id": 102, "name": "AI-based Crop Monitoring" }
+    ]
+  },
+  {
+    "program_id": 2,
+    "name": "Renewable Energy Program",
+    "description": "Exploring solar, wind, and bio-energy solutions to drive sustainable development.",
+    "national_alignment": "4IR - Green Energy Transition",
+    "focus_areas": ["Solar", "Wind", "Biogas"],
+    "phases": ["Collaboration", "Technical Skills", "Prototyping", "Commercialization"],
+    "projects": [
+      { "project_id": 201, "name": "Community Solar Grid" }
+    ]
+  },
+  {
+    "program_id": 3,
+    "name": "Digital Health Program",
+    "description": "Leveraging technology to improve healthcare access and efficiency in rural areas.",
+    "national_alignment": "Roadmap 2040 - Health Innovation",
+    "focus_areas": ["Mobile Apps", "Telemedicine", "Data Analytics"],
+    "phases": ["Cross-Skilling", "Collaboration", "Prototyping"],
+    "projects": []
+  }
+]
