@@ -1,0 +1,24 @@
+[
+  {
+    "project_id": 1,
+    "title": "Smart Irrigation System",
+    "description": "IoT based water management",
+    "facility_id": 1,
+    "program_id": 1,
+    "innovation_focus": "IoT in agriculture",
+    "prototype_stage": "Prototype",
+    "commercialization_plan": "Demoed",
+    "participants": ["Alice", "Bob"],
+    "outcomes": [
+      {
+        "outcome_id": 1,
+        "title": "Prototype Demonstration",
+        "description": "Working model demoed",
+        "artifact_link": "link-to-demo",
+        "outcome_type": "Prototype",
+        "quality_certification": "UIRI certified",
+        "commercialization_status": "Demoed"
+      }
+    ]
+  }
+]
