@@ -1,141 +1,81 @@
 <?php
 
-// ===== 1. app/Services/FacilityService.php =====
-// This is the  business logic layer 
-
 namespace App\Services;
 
-use App\Models\Facility;
 use InvalidArgumentException;
 
 class FacilityService
 {
-    /**
-     * Create a new facility with business validation
-     */
-    public function createFacility(array $data): Facility
+    private JsonDB $db;
+
+    public function __construct()
     {
-        // Business validation (independent of HTTP validation)
-        $this->validateBusinessRules($data);
-
-        // Check if facility name already exists
-        if (Facility::where('name', $data['name'])->exists()) {
-            throw new InvalidArgumentException("Facility with name '{$data['name']}' already exists");
-        }
-
-        // Create the facility
-        $facility = Facility::create([
-            'name' => $data['name'],
-            'location' => $data['location'],
-            'description' => $data['description'],
-            'partner_organization' => $data['partner_organization'] ?? null,
-            'facility_type' => $data['facility_type'],
-            'capabilities' => $data['capabilities'] ?? [],
-        ]);
-
-        return $facility;
+        $this->db = new JsonDB('facilities'); // storage/json/facilities.json
     }
 
     /**
-     * Get all facilities with optional filtering
+     * Get all facilities (with optional filters)
      */
     public function getFacilities(?string $type = null, ?string $partner = null): array
     {
-        $query = Facility::query();
+        $facilities = collect($this->db->all());
 
         if ($type) {
-            $query->where('facility_type', $type);
+            $facilities = $facilities->where('facility_type', $type);
         }
 
         if ($partner) {
-            $query->where('partner_organization', $partner);
+            $facilities = $facilities->where('partner_organization', $partner);
         }
 
-        return $query->get()->toArray();
+        return $facilities->values()->toArray();
     }
 
     /**
-     * Get a facility by ID
+     * Get a single facility
      */
-    public function getFacilityById(int $facilityId): ?Facility
+    public function getFacilityById(int $id): ?array
     {
-        return Facility::find($facilityId);
+        return $this->db->find($id);
+    }
+
+    /**
+     * Create facility
+     */
+    public function createFacility(array $data): array
+    {
+        if (empty($data['name'])) {
+            throw new InvalidArgumentException('Facility name is required.');
+        }
+
+        return $this->db->create($data);
     }
 
     /**
      * Update facility
      */
-    public function updateFacility(int $facilityId, array $data): Facility
+    public function updateFacility(int $id, array $data): ?array
     {
-        $facility = Facility::findOrFail($facilityId);
-        
-        $this->validateBusinessRules($data);
+        $facility = $this->db->update($id, $data);
 
-        // Check name uniqueness (excluding current facility)
-        if (Facility::where('name', $data['name'])
-                  ->where('facility_id', '!=', $facilityId)
-                  ->exists()) {
-            throw new InvalidArgumentException("Facility with name '{$data['name']}' already exists");
+        if (!$facility) {
+            throw new InvalidArgumentException("Facility with ID {$id} not found.");
         }
 
-        $facility->update([
-            'name' => $data['name'],
-            'location' => $data['location'],
-            'description' => $data['description'],
-            'partner_organization' => $data['partner_organization'] ?? null,
-            'facility_type' => $data['facility_type'],
-            'capabilities' => $data['capabilities'] ?? [],
-        ]);
-
-        return $facility->fresh();
+        return $facility;
     }
 
     /**
-     * Delete facility (with business rules check)
+     * Delete facility
      */
-    public function deleteFacility(int $facilityId): bool
+    public function deleteFacility(int $id): bool
     {
-        $facility = Facility::findOrFail($facilityId);
+        $deleted = $this->db->delete($id);
 
-        // Business rule: Can't delete facility with active projects
-        if ($facility->projects()->exists()) {
-            throw new InvalidArgumentException("Cannot delete facility with active projects");
+        if (!$deleted) {
+            throw new InvalidArgumentException("Facility with ID {$id} cannot be deleted or not found.");
         }
 
-        return $facility->delete();
-    }
-
-    /**
-     * Business validation rules (independent of HTTP layer)
-     */
-    private function validateBusinessRules(array $data): void
-    {
-        if (empty(trim($data['name'] ?? ''))) {
-            throw new InvalidArgumentException("Facility name is required");
-        }
-
-        if (empty(trim($data['location'] ?? ''))) {
-            throw new InvalidArgumentException("Facility location is required");
-        }
-
-        if (empty(trim($data['description'] ?? ''))) {
-            throw new InvalidArgumentException("Facility description is required");
-        }
-
-        $validTypes = ['Lab', 'Workshop', 'Testing Center', 'Maker Space'];
-        if (!in_array($data['facility_type'] ?? '', $validTypes)) {
-            throw new InvalidArgumentException("Invalid facility type");
-        }
-
-        if (!empty($data['partner_organization'])) {
-            $validPartners = ['UniPod', 'UIRI', 'Lwera'];
-            if (!in_array($data['partner_organization'], $validPartners)) {
-                throw new InvalidArgumentException("Invalid partner organization");
-            }
-        }
-
-        if (isset($data['capabilities']) && !is_array($data['capabilities'])) {
-            throw new InvalidArgumentException("Capabilities must be an array");
-        }
+        return true;
     }
 }
