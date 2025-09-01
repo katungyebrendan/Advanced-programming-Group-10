@@ -4,7 +4,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\ProgramController;
 
 Route::get('/', function () {
-    return view('welcome');
+    return redirect()->route('programs.index');
 });
 
 // Facility UI (Views)
