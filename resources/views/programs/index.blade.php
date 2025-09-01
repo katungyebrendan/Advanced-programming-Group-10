@@ -1,46 +1,73 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="container">
-    <h1>Programs</h1>
+<div class="container mx-auto p-6">
+    <h1 class="text-2xl font-bold mb-4">Programs</h1>
 
-    <a href="{{ route('programs.create') }}" class="btn btn-success mb-3">New Program</a>
+    <a href="{{ route('programs.create') }}" 
+       class="bg-blue-600 text-white px-4 py-2 rounded mb-4 inline-block">
+        + Add Program
+    </a>
 
-    @if(session('success')) <div class="alert alert-success">{{ session('success') }}</div> @endif
-
-    <table class="table table-striped">
+    <table class="table-auto border-collapse border border-gray-400 w-full">
         <thead>
-            <tr>
-                <th>Name</th>
-                <th>National Alignment</th>
-                <th>Focus Areas</th>
-                <th>Phases</th>
-                <th></th>
+            <tr class="bg-gray-200">
+                <th class="border px-4 py-2">ID</th>
+                <th class="border px-4 py-2">Name</th>
+                <th class="border px-4 py-2">National Alignment</th>
+                <th class="border px-4 py-2">Focus Areas</th>
+                <th class="border px-4 py-2">Phases</th>
+                <th class="border px-4 py-2">Actions</th>
             </tr>
         </thead>
-        <tbody>
-            @forelse($programs as $p)
-            <tr>
-                <td><a href="{{ route('programs.show', $p) }}">{{ $p->name }}</a></td>
-                <td>{{ $p->national_alignment }}</td>
-                <td>{{ is_array($p->focus_areas) ? implode(', ', $p->focus_areas) : $p->focus_areas }}</td>
-                <td>{{ is_array($p->phases) ? implode(', ', $p->phases) : $p->phases }}</td>
-                <td style="white-space:nowrap">
-                    <a class="btn btn-sm btn-primary" href="{{ route('programs.edit', $p) }}">Edit</a>
-
-                    <form action="{{ route('programs.destroy', $p) }}" method="POST" style="display:inline-block" onsubmit="return confirm('Delete this program?')">
-                        @csrf
-                        @method('DELETE')
-                        <button class="btn btn-sm btn-danger">Delete</button>
-                    </form>
-                </td>
-            </tr>
-            @empty
-            <tr><td colspan="5">No programs yet.</td></tr>
-            @endforelse
+        <tbody id="program-table">
+            <!-- Programs will load here -->
         </tbody>
     </table>
-
-    {{ $programs->links() }}
 </div>
+
+<script>
+document.addEventListener("DOMContentLoaded", async () => {
+    const response = await fetch("/api/programs");
+    const result = await response.json();
+    if (result.success) {
+        let rows = "";
+        result.data.forEach(p => {
+            rows += `
+                <tr>
+                    <td class="border px-4 py-2">${p.id}</td>
+                    <td class="border px-4 py-2">${p.name}</td>
+                    <td class="border px-4 py-2">${p.national_alignment ?? "-"}</td>
+                    <td class="border px-4 py-2">${(p.focus_areas || []).join(", ")}</td>
+                    <td class="border px-4 py-2">${(p.phases || []).join(", ")}</td>
+                    <td class="border px-4 py-2 space-x-2">
+                        <a href="/program/${p.id}" class="text-blue-600">View</a>
+                        <a href="/program/${p.id}/edit" class="text-yellow-600">Edit</a>
+                        <button onclick="deleteProgram(${p.id})" class="text-red-600">Delete</button>
+                    </td>
+                </tr>
+            `;
+        });
+        document.getElementById("program-table").innerHTML = rows;
+    } else {
+        document.getElementById("program-table").innerHTML =
+            `<tr><td colspan="6" class="text-center text-red-600">Failed to load programs</td></tr>`;
+    }
+});
+
+async function deleteProgram(id) {
+    if (!confirm("Are you sure you want to delete this program?")) return;
+    const response = await fetch(`/api/programs/${id}`, {
+        method: "DELETE",
+        headers: { "X-CSRF-TOKEN": getCsrfToken() }
+    });
+    const result = await response.json();
+    if (result.success) {
+        alert("Program deleted successfully");
+        location.reload();
+    } else {
+        alert(result.message || "Failed to delete program");
+    }
+}
+</script>
 @endsection
