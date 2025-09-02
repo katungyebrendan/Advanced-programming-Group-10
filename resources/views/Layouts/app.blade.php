@@ -18,13 +18,16 @@
         <div class="container mx-auto flex justify-between items-center">
             <a href="/" class="font-bold text-lg">Capstone System</a>
             <div class="space-x-6">
-                <a href="/facility" class="hover:underline">Facilities</a>
+                <a href="/facilities" class="hover:underline">Facilities</a>
                 <a href="/facility/create" class="hover:underline"></a>
 
                 <!-- Programs Links -->
                 <a href="{{ route('programs.index') }}" class="hover:underline {{ request()->routeIs('programs.*') ? 'underline' : '' }}">Programs</a>
                 <a href="{{ route('programs.create') }}" class="hover:underline {{ request()->routeIs('programs.create') ? 'underline' : '' }}">Register Program</a>
         
+                  <!-- Equipment Links -->
+                <a href="{{ route('equipment.index') }}" class="hover:underline">Equipment</a>
+                <a href="{{ route('equipment.create') }}" class="hover:underline">Register Equipment</a>
 
 
 
