@@ -25,6 +25,9 @@
                 <a href="{{ route('programs.index') }}" class="hover:underline {{ request()->routeIs('programs.*') ? 'underline' : '' }}">Programs</a>
                 <a href="{{ route('programs.create') }}" class="hover:underline {{ request()->routeIs('programs.create') ? 'underline' : '' }}">Register Program</a>
         
+                  <!-- Equipment Links -->
+                <a href="{{ route('equipment.index') }}" class="hover:underline">Equipment</a>
+                <a href="{{ route('equipment.create') }}" class="hover:underline">Register Equipment</a>
 
 
 
