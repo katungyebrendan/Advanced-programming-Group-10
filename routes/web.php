@@ -2,6 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\ProgramController;
+use App\Http\Controllers\ProjectController;
 
 Route::get('/', function () {
     return redirect()->route('programs.index');
@@ -15,3 +16,7 @@ Route::view('/facility/{id}/edit', 'Facility.edit')->name('facility.edit');
 
 //Program UI Views 
 Route::resource('programs', ProgramController::class);
+
+
+//Projects UI Views
+Route::get('/projects/view', [ProjectController::class, 'listView'])->name('projects.view');
