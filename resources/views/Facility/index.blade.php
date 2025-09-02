@@ -4,7 +4,34 @@
 <div class="container mx-auto p-6">
     <h1 class="text-2xl font-bold mb-4">Facilities</h1>
 
-    <a href="{{ route('facility.create') }}" class="bg-blue-600 text-white px-4 py-2 rounded mb-4 inline-block">+ Add Facility</a>
+    <div class="flex flex-col md:flex-row md:items-end justify-between mb-4 space-y-4 md:space-y-0 md:space-x-4">
+        <div class="flex-grow">
+            <label for="search-input" class="block text-sm font-medium text-gray-700">Search</label>
+            <input type="text" id="search-input" placeholder="Name, location, or description..."
+                   class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2">
+        </div>
+        <div>
+            <label for="type-select" class="block text-sm font-medium text-gray-700">Type</label>
+            <select id="type-select" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2">
+                <option value="">All</option>
+                <option value="Lab">Lab</option>
+                <option value="Workshop">Workshop</option>
+                <option value="Testing Center">Testing Center</option>
+                <option value="Maker Space">Maker Space</option>
+            </select>
+        </div>
+        <div>
+            <label for="partner-select" class="block text-sm font-medium text-gray-700">Partner</label>
+            <select id="partner-select" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2">
+                <option value="">All</option>
+                <option value="UniPod">UniPod</option>
+                <option value="UIRI">UIRI</option>
+                <option value="Lwera">Lwera</option>
+            </select>
+        </div>
+        <button id="filter-button" class="bg-blue-600 text-white px-4 py-2 rounded-md">Filter</button>
+        <a href="{{ route('facility.create') }}" class="bg-green-600 text-white px-4 py-2 rounded-md">+ Add Facility</a>
+    </div>
 
     <table class="table-auto border-collapse border border-gray-400 w-full">
         <thead>
@@ -18,56 +45,88 @@
             </tr>
         </thead>
         <tbody id="facility-table">
-            <!-- Facilities will load here -->
-        </tbody>
+            </tbody>
     </table>
 </div>
 
 <script>
-document.addEventListener("DOMContentLoaded", async () => {
-    const response = await fetch("/api/facilities");
-    const result = await response.json();
-
-    if (result.success) {
-        let rows = "";
-        result.data.forEach(f => {
-            rows += `
-                <tr>
-                    <td class="border px-4 py-2">${f.facility_id}</td>
-                    <td class="border px-4 py-2">${f.name}</td>
-                    <td class="border px-4 py-2">${f.location}</td>
-                    <td class="border px-4 py-2">${f.facility_type}</td>
-                    <td class="border px-4 py-2">${f.partner_organization ?? "-"}</td>
-                    <td class="border px-4 py-2 space-x-2">
-                        <a href="/facility/${f.facility_id}" class="text-blue-600">View</a>
-                        <a href="/facility/${f.facility_id}/edit" class="text-yellow-600">Edit</a>
-                        <button onclick="deleteFacility(${f.facility_id})" class="text-red-600">Delete</button>
-                    </td>
-                </tr>
-            `;
-        });
-        document.getElementById("facility-table").innerHTML = rows;
-    } else {
-        document.getElementById("facility-table").innerHTML =
-            `<tr><td colspan="6" class="text-center text-red-600">Failed to load facilities</td></tr>`;
-    }
-});
-
-async function deleteFacility(id) {
-    if (!confirm("Are you sure you want to delete this facility?")) return;
-
-    const response = await fetch(`/api/facilities/${id}`, {
-        method: "DELETE",
-        headers: { "X-CSRF-TOKEN": getCsrfToken() }
+    document.addEventListener("DOMContentLoaded", () => {
+        const filterButton = document.getElementById('filter-button');
+        filterButton.addEventListener('click', fetchFacilities);
+        
+        // Initial load
+        fetchFacilities();
     });
 
-    const result = await response.json();
-    if (result.success) {
-        alert("Facility deleted successfully");
-        location.reload();
-    } else {
-        alert(result.message || "Failed to delete facility");
+    async function fetchFacilities() {
+        const searchTerm = document.getElementById('search-input').value;
+        const typeFilter = document.getElementById('type-select').value;
+        const partnerFilter = document.getElementById('partner-select').value;
+        
+        const params = new URLSearchParams();
+        if (searchTerm) params.append('search', searchTerm);
+        if (typeFilter) params.append('type', typeFilter);
+        if (partnerFilter) params.append('partner', partnerFilter);
+
+        const url = `/api/facilities?${params.toString()}`;
+        
+        try {
+            const response = await fetch(url);
+            const result = await response.json();
+            
+            const tableBody = document.getElementById("facility-table");
+            if (result.success) {
+                let rows = "";
+                if (result.data.length === 0) {
+                    rows = `<tr><td colspan="6" class="text-center py-4">No facilities found.</td></tr>`;
+                } else {
+                    result.data.forEach(f => {
+                        rows += `
+                            <tr>
+                                <td class="border px-4 py-2">${f.facility_id}</td>
+                                <td class="border px-4 py-2">${f.name}</td>
+                                <td class="border px-4 py-2">${f.location}</td>
+                                <td class="border px-4 py-2">${f.facility_type}</td>
+                                <td class="border px-4 py-2">${f.partner_organization ?? "-"}</td>
+                                <td class="border px-4 py-2 space-x-2">
+                                    <a href="/facility/${f.facility_id}" class="text-blue-600">View</a>
+                                    <a href="/facility/${f.facility_id}/edit" class="text-yellow-600">Edit</a>
+                                    <button onclick="deleteFacility(${f.facility_id})" class="text-red-600">Delete</button>
+                                </td>
+                            </tr>
+                        `;
+                    });
+                }
+                tableBody.innerHTML = rows;
+            } else {
+                tableBody.innerHTML =
+                    `<tr><td colspan="6" class="text-center text-red-600">Failed to load facilities: ${result.message}</td></tr>`;
+            }
+        } catch (error) {
+            tableBody.innerHTML =
+                `<tr><td colspan="6" class="text-center text-red-600">An error occurred while fetching facilities.</td></tr>`;
+        }
     }
-}
+    
+    async function deleteFacility(id) {
+        if (!confirm("Are you sure you want to delete this facility?")) return;
+
+        try {
+            const response = await fetch(`/api/facilities/${id}`, {
+                method: "DELETE",
+                headers: { "X-CSRF-TOKEN": getCsrfToken() }
+            });
+
+            const result = await response.json();
+            if (result.success) {
+                alert("Facility deleted successfully");
+                fetchFacilities(); // Reload the table
+            } else {
+                alert(result.message || "Failed to delete facility");
+            }
+        } catch (error) {
+            alert("An error occurred during deletion.");
+        }
+    }
 </script>
 @endsection
