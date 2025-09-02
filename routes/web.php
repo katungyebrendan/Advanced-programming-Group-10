@@ -19,4 +19,7 @@ Route::resource('programs', ProgramController::class);
 
 
 //Projects UI Views
-Route::get('/projects/view', [ProjectController::class, 'listView'])->name('projects.view');
+Route::get('/projects/view', [ProjectController::class, 'listView'])->name('projects.index');
+Route::get('/projects/create', [ProjectController::class, 'create'])->name('projects.create');
+Route::get('/projects/{id}/edit', [ProjectController::class, 'edit'])->name('projects.edit');
+Route::get('/projects/{id}', [ProjectController::class, 'showView'])->name('projects.show');
