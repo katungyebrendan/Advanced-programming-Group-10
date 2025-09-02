@@ -55,20 +55,27 @@
 
 <script>
 document.addEventListener("DOMContentLoaded", async () => {
-    const facilityId = window.location.pathname.split("/").slice(-2)[0];
+    const pathSegments = window.location.pathname.split("/");
+    const facilityId = pathSegments[pathSegments.length - 2];
 
     // Load existing data
-    const response = await fetch(`/api/facilities/${facilityId}`);
-    const result = await response.json();
+    try {
+        const response = await fetch(`/api/facilities/${facilityId}`);
+        const result = await response.json();
 
-    if (result.success) {
-        const f = result.data;
-        document.querySelector('[name="name"]').value = f.name;
-        document.querySelector('[name="location"]').value = f.location;
-        document.querySelector('[name="description"]').value = f.description;
-        document.querySelector('[name="partner_organization"]').value = f.partner_organization ?? "";
-        document.querySelector('[name="facility_type"]').value = f.facility_type;
-        document.querySelector('[name="capabilities"]').value = (f.capabilities || []).join(", ");
+        if (result.success) {
+            const f = result.data;
+            document.querySelector('[name="name"]').value = f.name;
+            document.querySelector('[name="location"]').value = f.location;
+            document.querySelector('[name="description"]').value = f.description;
+            document.querySelector('[name="partner_organization"]').value = f.partner_organization ?? "";
+            document.querySelector('[name="facility_type"]').value = f.facility_type;
+            document.querySelector('[name="capabilities"]').value = (f.capabilities || []).join(", ");
+        } else {
+            alert(result.message || 'Failed to load facility data');
+        }
+    } catch (error) {
+        alert('An error occurred while fetching data.');
     }
 
     // Handle update
@@ -80,20 +87,24 @@ document.addEventListener("DOMContentLoaded", async () => {
             data.capabilities = data.capabilities.split(',').map(c => c.trim());
         }
 
-        const updateResponse = await fetch(`/api/facilities/${facilityId}`, {
-            method: 'PUT',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRF-TOKEN': getCsrfToken()
-            },
-            body: JSON.stringify(data)
-        });
+        try {
+            const updateResponse = await fetch(`/api/facilities/${facilityId}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': getCsrfToken()
+                },
+                body: JSON.stringify(data)
+            });
 
-        const updateResult = await updateResponse.json();
-        if (updateResult.success) {
-            window.location.href = "{{ route('facility.index') }}";
-        } else {
-            alert(updateResult.message || 'Failed to update facility');
+            const updateResult = await updateResponse.json();
+            if (updateResult.success) {
+                window.location.href = "{{ route('facility.index') }}";
+            } else {
+                alert(updateResult.message || 'Failed to update facility');
+            }
+        } catch (error) {
+            alert('An error occurred during the update.');
         }
     });
 });

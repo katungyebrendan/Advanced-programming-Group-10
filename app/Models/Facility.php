@@ -38,7 +38,7 @@ class Facility extends Model
         return $this->hasMany(Project::class, 'facility_id');
     }
 
-    // 🔹 Query scopes
+    // Query scopes
     public function scopeByType(Builder $query, ?string $type): Builder
     {
         return $type ? $query->where('facility_type', $type) : $query;
@@ -63,10 +63,10 @@ class Facility extends Model
         return $query->whereJsonContains('capabilities', $capability);
     }
 
-    // 🔹 Safeguard methods
+    // Safeguard methods
     public function canBeDeleted(): bool
     {
-        // Example: block deletion if linked to any projects
+        // Block deletion if linked to any projects
         return $this->projects()->count() === 0;
     }
 
