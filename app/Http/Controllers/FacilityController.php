@@ -1,160 +1,122 @@
 <?php
+
 namespace App\Http\Controllers;
 
-use App\Http\Controllers\Controller;
-use App\Http\Requests\CreateFacilityRequest;
-use App\Http\Requests\UpdateFacilityRequest;
-use App\Services\FacilityService;
-use Illuminate\Http\JsonResponse;
+use App\Models\Facility;
 use Illuminate\Http\Request;
+use App\Http\Controllers\Controller;
 use InvalidArgumentException;
 
 class FacilityController extends Controller
 {
-    public function __construct(
-        private FacilityService $facilityService
-    ) {}
+    /**
+     * Display a listing of the resource.
+     */
+    public function index()
+    {
+        // Return a view with a list of all facilities
+        $facilities = Facility::all();
+        return view('facilities.index', compact('facilities'));
+    }
 
     /**
-     * List all facilities
-     * GET /api/facilities
+     * Show the form for creating a new resource.
      */
-    public function index(Request $request): JsonResponse
+    public function create()
     {
-        try {
-            $facilities = $this->facilityService->getFacilities(
-                $request->query('type'),
-                $request->query('partner')
-            );
+        // Return the view with the facility creation form
+        return view('facilities.create');
+    }
 
-            return response()->json([
-                'success' => true,
-                'data' => $facilities
-            ]);
+    /**
+     * Store a newly created resource in storage.
+     */
+    public function store(Request $request)
+    {
+        // Validate the incoming data from the form
+        $request->validate([
+            'name' => 'required|string|max:255',
+            'location' => 'required|string|max:255',
+            'description' => 'required|string',
+            'partner_organization' => 'nullable|string',
+            'facility_type' => 'required|string',
+            'capabilities' => 'nullable|string',
+        ]);
+
+        try {
+            // Create a new facility record using the validated data
+            Facility::create($request->all());
+
+            // Redirect to the facilities list page with a success message
+            return redirect()->route('facilities.index')
+                             ->with('success', 'Facility created successfully.');
+        } catch (InvalidArgumentException $e) {
+            // Redirect back with an error message
+            return back()->withInput()->withErrors(['message' => $e->getMessage()]);
         } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Failed to retrieve facilities'
-            ], 500);
+            return back()->withInput()->withErrors(['message' => 'Failed to create facility']);
         }
     }
 
     /**
-     * Get specific facility
-     * GET /api/facilities/{id}
+     * Display the specified resource.
      */
-    public function show(int $id): JsonResponse
+    public function show(int $id)
+    {
+        $facility = Facility::findOrFail($id);
+        return view('facilities.show', compact('facility'));
+    }
+
+    /**
+     * Show the form for editing the specified resource.
+     */
+    public function edit(int $id)
+    {
+        $facility = Facility::findOrFail($id);
+        return view('facilities.edit', compact('facility'));
+    }
+
+    /**
+     * Update the specified resource in storage.
+     */
+    public function update(Request $request, int $id)
+    {
+        $request->validate([
+            'name' => 'required|string|max:255',
+            'location' => 'required|string|max:255',
+            'description' => 'required|string',
+            'partner_organization' => 'nullable|string',
+            'facility_type' => 'required|string',
+            'capabilities' => 'nullable|string',
+        ]);
+
+        try {
+            $facility = Facility::findOrFail($id);
+            $facility->update($request->all());
+
+            return redirect()->route('facilities.index')
+                             ->with('success', 'Facility updated successfully.');
+        } catch (\Exception $e) {
+            return back()->withInput()->withErrors(['message' => 'Failed to update facility']);
+        }
+    }
+
+    /**
+     * Remove the specified resource from storage.
+     */
+    public function destroy(int $id)
     {
         try {
-            $facility = $this->facilityService->getFacilityById($id);
-
-            if (!$facility) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Facility not found'
-                ], 404);
+            $facility = Facility::findOrFail($id);
+            if (!$facility->canBeDeleted()) {
+                return back()->withErrors(['message' => $facility->getDeletionBlockReason()]);
             }
 
-            return response()->json([
-                'success' => true,
-                'data' => $facility
-            ]);
+            $facility->delete();
+            return redirect()->route('facilities.index')
+                             ->with('success', 'Facility deleted successfully.');
         } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Failed to retrieve facility'
-            ], 500);
-        }
-    }
-
-    /**
-     * Create new facility
-     * POST /api/facilities
-     */
-    public function store(CreateFacilityRequest $request): JsonResponse
-    {
-        try {
-            // The request is already validated by Laravel
-            $facility = $this->facilityService->createFacility($request->validated());
-
-            return response()->json([
-                'success' => true,
-                'message' => 'Facility created successfully',
-                'data' => $facility
-            ], 201);
-
-        } catch (InvalidArgumentException $e) {
-            return response()->json([
-                'success' => false,
-                'message' => $e->getMessage()
-            ], 422);
-        } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Failed to create facility'
-            ], 500);
-        }
-    }
-
-    /**
-     * Update facility
-     * PUT /api/facilities/{id}
-     */
-    public function update(UpdateFacilityRequest $request, int $id): JsonResponse
-    {
-        try {
-            $facility = $this->facilityService->updateFacility($id, $request->validated());
-
-            return response()->json([
-                'success' => true,
-                'message' => 'Facility updated successfully',
-                'data' => $facility
-            ]);
-
-        } catch (InvalidArgumentException $e) {
-            return response()->json([
-                'success' => false,
-                'message' => $e->getMessage()
-            ], 422);
-        } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Failed to update facility'
-            ], 500);
-        }
-    }
-
-    /**
-     * Delete facility
-     * DELETE /api/facilities/{id}
-     */
-    public function destroy(int $id): JsonResponse
-    {
-        try {
-            $deleted = $this->facilityService->deleteFacility($id);
-
-            if ($deleted) {
-                return response()->json([
-                    'success' => true,
-                    'message' => 'Facility deleted successfully'
-                ]);
-            }
-
-            return response()->json([
-                'success' => false,
-                'message' => 'Failed to delete facility'
-            ], 500);
-
-        } catch (InvalidArgumentException $e) {
-            return response()->json([
-                'success' => false,
-                'message' => $e->getMessage()
-            ], 422);
-        } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Failed to delete facility'
-            ], 500);
+            return back()->withErrors(['message' => 'Failed to delete facility']);
         }
     }
 }

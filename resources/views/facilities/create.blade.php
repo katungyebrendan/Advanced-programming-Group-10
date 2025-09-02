@@ -4,8 +4,9 @@
 <div class="max-w-3xl mx-auto bg-white p-6 rounded shadow">
     <h1 class="text-2xl font-bold mb-4">Register New Facility</h1>
 
-    <form id="facility-form">
+    <form action="{{ route('facilities.store') }}" method="POST">
         @csrf
+        
         <div class="mb-4">
             <label class="block font-medium">Name</label>
             <input type="text" name="name" class="w-full border rounded p-2" required>
@@ -47,34 +48,7 @@
         </div>
 
         <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded">Save</button>
-        <a href="{{ route('facility.index') }}" class="ml-3 text-gray-600">Cancel</a>
+        <a href="{{ route('facilities.index') }}" class="ml-3 text-gray-600">Cancel</a>
     </form>
 </div>
-
-<script>
-document.getElementById('facility-form').addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const formData = new FormData(e.target);
-    let data = Object.fromEntries(formData.entries());
-    if (data.capabilities) {
-        data.capabilities = data.capabilities.split(',').map(c => c.trim());
-    }
-
-    const response = await fetch('/api/facilities', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'X-CSRF-TOKEN': getCsrfToken()
-        },
-        body: JSON.stringify(data)
-    });
-
-    const result = await response.json();
-    if (result.success) {
-        window.location.href = "{{ route('facility.index') }}";
-    } else {
-        alert(result.message || 'Failed to create facility');
-    }
-});
-</script>
 @endsection

@@ -18,7 +18,7 @@
         <div class="container mx-auto flex justify-between items-center">
             <a href="/" class="font-bold text-lg">Capstone System</a>
             <div class="space-x-6">
-                <a href="/facility" class="hover:underline">Facilities</a>
+                <a href="/facilities" class="hover:underline">Facilities</a>
                 <a href="/facility/create" class="hover:underline"></a>
 
                 <!-- Programs Links -->

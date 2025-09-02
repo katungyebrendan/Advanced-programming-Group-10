@@ -19,7 +19,7 @@ class Facility extends Model
     ];
 
     protected $casts = [
-        'capabilities' => 'array', // store as JSON
+        'capabilities' => 'array', // This will convert the comma-separated string to a JSON array
     ];
 
     // Relationships
@@ -66,7 +66,6 @@ class Facility extends Model
     // 🔹 Safeguard methods
     public function canBeDeleted(): bool
     {
-        // Example: block deletion if linked to any projects
         return $this->projects()->count() === 0;
     }
 

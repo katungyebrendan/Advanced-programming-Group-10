@@ -3,20 +3,16 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\ProgramController;
 use App\Http\Controllers\ProjectController;
-
+use App\Http\Controllers\FacilityController; 
 Route::get('/', function () {
     return redirect()->route('programs.index');
 });
 
-// Facility UI (Views)
-Route::view('/facility', 'Facility.index')->name('facility.index');
-Route::view('/facility/create', 'Facility.create')->name('facility.create');
-Route::view('/facility/{id}', 'Facility.show')->name('facility.show');
-Route::view('/facility/{id}/edit', 'Facility.edit')->name('facility.edit');
+// Facilities UI Views
+Route::resource('facilities', FacilityController::class);
 
-//Program UI Views 
+// Program UI Views
 Route::resource('programs', ProgramController::class);
 
-
-//Projects UI Views
+// Projects UI Views
 Route::get('/projects/view', [ProjectController::class, 'listView'])->name('projects.view');
