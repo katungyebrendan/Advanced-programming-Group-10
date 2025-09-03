@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -18,19 +19,28 @@
         <div class="container mx-auto flex justify-between items-center">
             <a href="/" class="font-bold text-lg">Capstone System</a>
             <div class="space-x-6">
-                <a href="/facilities" class="hover:underline">Facilities</a>
-                <a href="/facility/create" class="hover:underline"></a>
+                <!-- Facilities Links -->
+                <a href="{{ route('facilities.index') }}" class="hover:underline {{ request()->routeIs('facilities.*') ? 'underline' : '' }}">Facilities</a>
+                <a href="{{ route('facilities.create') }}" class="hover:underline {{ request()->routeIs('facilities.create') ? 'underline' : '' }}">Register Facility</a>
 
                 <!-- Programs Links -->
                 <a href="{{ route('programs.index') }}" class="hover:underline {{ request()->routeIs('programs.*') ? 'underline' : '' }}">Programs</a>
                 <a href="{{ route('programs.create') }}" class="hover:underline {{ request()->routeIs('programs.create') ? 'underline' : '' }}">Register Program</a>
         
-                  <!-- Equipment Links -->
-                <a href="{{ route('equipment.index') }}" class="hover:underline">Equipment</a>
-                <a href="{{ route('equipment.create') }}" class="hover:underline">Register Equipment</a>
+                <!-- Equipment Links -->
+                <a href="{{ route('equipment.index') }}" class="hover:underline {{ request()->routeIs('equipment.*') ? 'underline' : '' }}">Equipment</a>
+                <a href="{{ route('equipment.create') }}" class="hover:underline {{ request()->routeIs('equipment.create') ? 'underline' : '' }}">Register Equipment</a>
 
+                <!-- Services Links -->
+                <a href="{{ route('services.index') }}" class="hover:underline {{ request()->routeIs('services.*') ? 'underline' : '' }}">Services</a>
+                <a href="{{ route('services.create') }}" class="hover:underline {{ request()->routeIs('services.create') ? 'underline' : '' }}">Register Service</a>
 
+                <!-- Participants Links -->
+                <a href="{{ route('participants.index') }}" class="hover:underline {{ request()->routeIs('participants.*') ? 'underline' : '' }}">Participants</a>
+                <a href="{{ route('participants.create') }}" class="hover:underline {{ request()->routeIs('participants.create') ? 'underline' : '' }}">Register Participant</a>
 
+                <!-- Projects Links -->
+                <a href="{{ route('projects.view') }}" class="hover:underline {{ request()->routeIs('projects.*') ? 'underline' : '' }}">Projects</a>
             </div>
         </div>
     </nav>

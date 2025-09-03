@@ -2,117 +2,91 @@
 
 namespace App\Http\Controllers;
 
-use App\Services\ProjectService;
+use App\Models\Project;
+use App\Models\Program;
+use App\Models\Facility;
 use Illuminate\Http\Request;
-use Illuminate\Http\JsonResponse;
-use InvalidArgumentException;
 
 class ProjectController extends Controller
 {
-    private ProjectService $projectService;
-
-    public function __construct(ProjectService $projectService)
+    // List all projects
+    public function index()
     {
-        $this->projectService = $projectService;
+        $projects = Project::with(['program', 'facility'])->get();
+        return view('projects.index', compact('projects'));
     }
 
-    // 🔹 List all projects (optionally filtered by facility or program)
-    public function index(Request $request): JsonResponse
+    // Show the form to create a new project
+    public function create()
     {
-        $facilityId = $request->query('facility_id');
-        $programId = $request->query('program_id');
+        $programs = Program::all();
+        $facilities = Facility::all();
+        return view('projects.create', compact('programs', 'facilities'));
+    }
 
-        $projects = $this->projectService->getProjects($facilityId, $programId);
-
-        return response()->json([
-            'success' => true,
-            'data' => $projects
+    // Store a new project
+    public function store(Request $request)
+    {
+        $validated = $request->validate([
+            'title' => 'required|string|max:255',
+            'program_id' => 'required|exists:programs,id',
+            'facility_id' => 'required|exists:facilities,id',
+            'nature_of_project' => 'nullable|string|max:255',
+            'description' => 'nullable|string',
+            'innovation_focus' => 'nullable|string|max:255',
+            'prototype_stage' => 'nullable|string|max:255',
+            'testing_requirements' => 'nullable|string|max:255',
+            'commercialization_plan' => 'nullable|string|max:255',
         ]);
+
+        Project::create($validated);
+
+        return redirect()->route('projects.view')->with('success', 'Project created successfully.');
     }
 
-    // 🔹 List projects under a facility
-    public function byFacility(int $facilityId): JsonResponse
+    // Show a single project
+    public function show($id)
     {
-        $projects = $this->projectService->getProjects($facilityId, null);
+        $project = Project::with(['program', 'facility'])->findOrFail($id);
+        return view('projects.show', compact('project'));
+    }
 
-        return response()->json([
-            'success' => true,
-            'data' => $projects
+    // Show the form to edit a project
+    public function edit($id)
+    {
+        $project = Project::findOrFail($id);
+        $programs = Program::all();
+        $facilities = Facility::all();
+        return view('projects.edit', compact('project', 'programs', 'facilities'));
+    }
+
+    // Update a project
+    public function update(Request $request, $id)
+    {
+        $validated = $request->validate([
+            'title' => 'required|string|max:255',
+            'program_id' => 'required|exists:programs,id',
+            'facility_id' => 'required|exists:facilities,id',
+            'nature_of_project' => 'nullable|string|max:255',
+            'description' => 'nullable|string',
+            'innovation_focus' => 'nullable|string|max:255',
+            'prototype_stage' => 'nullable|string|max:255',
+            'testing_requirements' => 'nullable|string|max:255',
+            'commercialization_plan' => 'nullable|string|max:255',
         ]);
+
+        $project = Project::findOrFail($id);
+        $project->update($validated);
+
+        return redirect()->route('projects.view')->with('success', 'Project updated successfully.');
     }
 
-    // 🔹 List projects under a program
-    public function byProgram(int $programId): JsonResponse
+    // Delete a project
+    public function destroy($id)
     {
-        $projects = $this->projectService->getProjects(null, $programId);
+        $project = Project::findOrFail($id);
+        $project->delete();
 
-        return response()->json([
-            'success' => true,
-            'data' => $projects
-        ]);
-    }
-
-    // 🔹 View a specific project
-    public function show(int $id): JsonResponse
-    {
-        $project = $this->projectService->getProjectById($id);
-
-        if (!$project) {
-            return response()->json(['success' => false, 'message' => 'Project not found'], 404);
-        }
-
-        return response()->json(['success' => true, 'data' => $project]);
-    }
-
-    // 🔹 Create a new project
-    public function store(Request $request): JsonResponse
-    {
-        try {
-            $project = $this->projectService->createProject($request->all());
-            return response()->json(['success' => true, 'data' => $project], 201);
-        } catch (InvalidArgumentException $e) {
-            return response()->json(['success' => false, 'message' => $e->getMessage()], 422);
-        }
-    }
-
-    // 🔹 Update a project
-    public function update(Request $request, int $id): JsonResponse
-    {
-        try {
-            $project = $this->projectService->updateProject($id, $request->all());
-            return response()->json(['success' => true, 'data' => $project]);
-        } catch (InvalidArgumentException $e) {
-            return response()->json(['success' => false, 'message' => $e->getMessage()], 422);
-        }
-    }
-
-    // 🔹 Delete a project
-    public function destroy(int $id): JsonResponse
-    {
-        try {
-            $this->projectService->deleteProject($id);
-            return response()->json(['success' => true, 'message' => 'Project deleted']);
-        } catch (InvalidArgumentException $e) {
-            return response()->json(['success' => false, 'message' => $e->getMessage()], 422);
-        }
-    }
-
-    // 🔹 List outcomes for a project
-    public function listOutcomes(int $id): JsonResponse
-    {
-        $outcomes = $this->projectService->listOutcomes($id);
-
-        return response()->json(['success' => true, 'data' => $outcomes]);
-    }
-
-    // 🔹 Add an outcome to a project
-    public function addOutcome(Request $request, int $id): JsonResponse
-    {
-        try {
-            $outcome = $this->projectService->addOutcome($id, $request->all());
-            return response()->json(['success' => true, 'data' => $outcome], 201);
-        } catch (InvalidArgumentException $e) {
-            return response()->json(['success' => false, 'message' => $e->getMessage()], 422);
-        }
+        return redirect()->route('projects.view')->with('success', 'Project deleted successfully.');
     }
 }
