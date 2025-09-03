@@ -1,4 +1,3 @@
-
 @extends('layouts.app')
 
 @section('content')
@@ -27,7 +26,7 @@
             </tr>
         </thead>
         <tbody>
-            @forelse($equipment as $item)
+            @forelse($equipments as $item)
                 <tr>
                     <td class="border px-4 py-2">{{ $item->name }}</td>
                     <td class="border px-4 py-2">
@@ -55,9 +54,7 @@
     </table>
 
     <div class="mt-4">
-        {{ $equipment->links() }}
+        {{ $equipments->links() }}
     </div>
 </div>
 @endsection
-
-

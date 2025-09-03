@@ -22,6 +22,7 @@ class Equipment extends Model
     // Relationship: Equipment belongs to a Facility
     public function facility()
     {
-        return $this->belongsTo(Facility::class);
+    return $this->belongsTo(Facility::class, 'facility_id', 'facility_id');
     }
+
 }
