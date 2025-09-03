@@ -15,26 +15,39 @@ class ProgramController extends Controller
 
     public function create()
     {
-        $focusOptions = ['IoT','Automation','Renewables','Software','Business']; // customize
-        $phaseOptions = ['Cross-Skilling','Collaboration','Technical Skills','Prototyping','Commercialization'];
-        return view('programs.create', compact('focusOptions','phaseOptions'));
+        $focusOptions = ['IoT', 'Automation', 'Renewables', 'Software', 'Business'];
+        $phaseOptions = ['Cross-Skilling', 'Collaboration', 'Technical Skills', 'Prototyping', 'Commercialization'];
+        
+        return view('programs.create', compact('focusOptions', 'phaseOptions'));
     }
 
     public function store(Request $request)
     {
-        $data = $request->validate([
-            'name' => 'required|string|max:255',
-            'description' => 'nullable|string',
-            'national_alignment' => 'nullable|string|max:255',
-            'focus_areas' => 'nullable|array',
-            'focus_areas.*' => 'string|max:150',
-            'phases' => 'nullable|array',
-            'phases.*' => 'string|max:100',
-        ]);
+        try {
+            $data = $request->validate([
+                'name' => 'required|string|max:255',
+                'description' => 'nullable|string',
+                'national_alignment' => 'nullable|string|max:255',
+                'focus_areas' => 'nullable|array',
+                'focus_areas.*' => 'string|max:150',
+                'phases' => 'nullable|array',
+                'phases.*' => 'string|max:100',
+            ]);
 
-        Program::create($data);
+            // Ensure arrays are properly handled
+            $data['focus_areas'] = $data['focus_areas'] ?? [];
+            $data['phases'] = $data['phases'] ?? [];
 
-        return redirect()->route('programs.index')->with('success', 'Program created.');
+            $program = Program::create($data);
+
+            return redirect()->route('programs.index')
+                           ->with('success', 'Program created successfully!');
+
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return back()->withErrors($e->errors())->withInput();
+        } catch (\Exception $e) {
+            return back()->with('error', 'An error occurred while creating the program: ' . $e->getMessage())->withInput();
+        }
     }
 
     public function show(Program $program)
@@ -44,31 +57,54 @@ class ProgramController extends Controller
 
     public function edit(Program $program)
     {
-        $focusOptions = ['IoT','Automation','Renewables','Software','Business'];
-        $phaseOptions = ['Cross-Skilling','Collaboration','Technical Skills','Prototyping','Commercialization'];
-        return view('programs.edit', compact('program','focusOptions','phaseOptions'));
+        $focusOptions = ['IoT', 'Automation', 'Renewables', 'Software', 'Business'];
+        $phaseOptions = ['Cross-Skilling', 'Collaboration', 'Technical Skills', 'Prototyping', 'Commercialization'];
+        
+        return view('programs.edit', compact('program', 'focusOptions', 'phaseOptions'));
     }
 
     public function update(Request $request, Program $program)
     {
-        $data = $request->validate([
-            'name' => 'required|string|max:255',
-            'description' => 'nullable|string',
-            'national_alignment' => 'nullable|string|max:255',
-            'focus_areas' => 'nullable|array',
-            'focus_areas.*' => 'string|max:150',
-            'phases' => 'nullable|array',
-            'phases.*' => 'string|max:100',
-        ]);
+        try {
+            $data = $request->validate([
+                'name' => 'required|string|max:255',
+                'description' => 'nullable|string',
+                'national_alignment' => 'nullable|string|max:255',
+                'focus_areas' => 'nullable|array',
+                'focus_areas.*' => 'string|max:150',
+                'phases' => 'nullable|array',
+                'phases.*' => 'string|max:100',
+            ]);
 
-        $program->update($data);
+            // Ensure arrays are properly handled
+            $data['focus_areas'] = $data['focus_areas'] ?? [];
+            $data['phases'] = $data['phases'] ?? [];
 
-        return redirect()->route('programs.index')->with('success', 'Program updated.');
+            $program->update($data);
+
+            return redirect()->route('programs.index')
+                           ->with('success', 'Program updated successfully!');
+
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return back()->withErrors($e->errors())->withInput();
+        } catch (\Exception $e) {
+            return back()->with('error', 'An error occurred while updating the program: ' . $e->getMessage())->withInput();
+        }
     }
 
     public function destroy(Program $program)
     {
-        $program->delete();
-        return redirect()->route('programs.index')->with('success', 'Program deleted.');
+        try {
+            if (!$program->canBeDeleted()) {
+                return back()->with('error', $program->getDeletionBlockReason());
+            }
+
+            $program->delete();
+            return redirect()->route('programs.index')
+                           ->with('success', 'Program deleted successfully!');
+
+        } catch (\Exception $e) {
+            return back()->with('error', 'An error occurred while deleting the program: ' . $e->getMessage());
+        }
     }
 }
