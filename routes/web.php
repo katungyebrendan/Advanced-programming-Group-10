@@ -25,11 +25,10 @@ Route::resource('programs', ProgramController::class);
 Route::resource('equipment', EquipmentController::class);
 
 // Projects UI Views
-Route::get('/projects/view', [ProjectController::class, 'listView'])->name('projects.view');
+Route::get('/projects/view', [ProjectController::class, 'index'])->name('projects.view');
 Route::get('/projects/create', [ProjectController::class, 'create'])->name('projects.create');
 Route::get('/projects/{id}/edit', [ProjectController::class, 'edit'])->name('projects.edit');
-Route::get('/projects/{id}', [ProjectController::class, 'showView'])->name('projects.show');
-// Service CRUD
+Route::get('/projects/{id}', [ProjectController::class, 'show'])->name('projects.show');
 Route::resource('services', ServiceController::class);
 // List services by facility
 Route::get('facilities/{facility}/services', [ServiceController::class, 'byFacility'])->name('facilities.services');
@@ -38,6 +37,14 @@ Route::get('facilities/{facility}/services', [ServiceController::class, 'byFacil
 Route::resource('participants', ParticipantController::class);
 // List projects for a participant
 Route::get('participants/{participant}/projects', [ParticipantController::class, 'projects'])->name('participants.projects');
+// Global Outcome CRUD
+Route::get('outcomes', [OutcomeController::class, 'index'])->name('outcomes.index');
+Route::get('outcomes/create', [OutcomeController::class, 'create'])->name('outcomes.create');
+Route::post('outcomes', [OutcomeController::class, 'store'])->name('outcomes.store');
+Route::get('outcomes/{outcome}', [OutcomeController::class, 'show'])->name('outcomes.show');
+Route::get('outcomes/{outcome}/edit', [OutcomeController::class, 'edit'])->name('outcomes.edit');
+Route::put('outcomes/{outcome}', [OutcomeController::class, 'update'])->name('outcomes.update');
+Route::delete('outcomes/{outcome}', [OutcomeController::class, 'destroy'])->name('outcomes.destroy');
 
 // ProjectParticipant (assign/remove participants to/from projects)
 Route::post('projects/{project}/participants', [ProjectParticipantController::class, 'assign'])->name('projects.participants.assign');

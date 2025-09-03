@@ -2,46 +2,52 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Outcomes;
 use Illuminate\Http\Request;
 
-class OutcomesController extends Controller
+class OutcomeController extends Controller
 {
-    public function index() {
-        $outcomes = Outcomes::all();
-        return view('outcomes.index', compact('outcomes'));
+    public function index($projectId)
+    {
+        // show all outcomes for a given project
+        return view('outcomes.index', compact('projectId'));
     }
 
-    public function create() {
-        return view('outcomes.create');
+    public function create($projectId)
+    {
+        // form to create an outcome for a given project
+        return view('outcomes.create', compact('projectId'));
     }
 
-    public function store(Request $request) {
-        $data = $request->validate([
-            'name' => 'required',
-        ]);
-        Outcomes::create($data);
-        return redirect()->route('outcomes.index')->with('success','Outcomes created.');
+    public function store(Request $request, $projectId)
+    {
+        // normally save outcome here
+        // then redirect back to outcomes list of that project
+        return redirect()->route('projects.outcomes.index', $projectId);
     }
 
-    public function show(Outcomes $outcome) {
-        return view('outcomes.show', ['item' => $outcome]);
+    public function show($id)
+    {
+        // show a single outcome
+        return view('outcomes.show', compact('id'));
     }
 
-    public function edit(Outcomes $outcome) {
-        return view('outcomes.edit', ['item' => $outcome]);
+    public function edit($id)
+    {
+        // form to edit an outcome
+        return view('outcomes.edit', compact('id'));
     }
 
-    public function update(Request $request, Outcomes $outcome) {
-        $data = $request->validate([
-            'name' => 'required',
-        ]);
-        $outcome->update($data);
-        return redirect()->route('outcomes.index')->with('success','Outcomes updated.');
+    public function update(Request $request, $id)
+    {
+        // normally update outcome here
+        // then redirect back to show page
+        return redirect()->route('outcomes.show', $id);
     }
 
-    public function destroy(Outcomes $outcome) {
-        $outcome->delete();
-        return redirect()->route('outcomes.index')->with('success','Outcomes deleted.');
+    public function destroy($id)
+    {
+        // normally delete outcome here
+        // then redirect back to project’s outcomes list
+        return redirect()->route('projects.index'); 
     }
 }
