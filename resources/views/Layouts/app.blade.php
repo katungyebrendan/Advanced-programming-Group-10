@@ -38,9 +38,22 @@
                 <!-- Participants Links -->
                 <a href="{{ route('participants.index') }}" class="hover:underline {{ request()->routeIs('participants.*') ? 'underline' : '' }}">Participants</a>
                 <a href="{{ route('participants.create') }}" class="hover:underline {{ request()->routeIs('participants.create') ? 'underline' : '' }}">Register Participant</a>
-                <!-- Outcomes Links-->
-                 <a href="{{ route('outcomes.index') }}" class="hover:underline {{ request()->routeIs('outcomes.*') ? 'underline' : '' }}">Outcomes</a>
-                 <a href="{{ route('outcomes.create') }}" class="hover:underline {{ request()->routeIs('outcomes.create') ? 'underline' : '' }}">Register Outcome</a>
+                <!-- Outcomes Links -->
+                @if(isset($project) && $project->id)
+                    <a href="{{ route('projects.outcomes.index', $project->id) }}" 
+                    class="hover:underline {{ request()->routeIs('projects.outcomes.*') ? 'underline' : '' }}">
+                    Outcomes
+                    </a>
+
+                    <a href="{{ route('projects.outcomes.create', $project->id) }}" 
+                    class="hover:underline {{ request()->routeIs('projects.outcomes.create') ? 'underline' : '' }}">
+                    Register Outcome
+                    </a>
+                @else
+                    <!-- Optional fallback if $project is not set -->
+                    <a href="#" class="hover:underline text-gray-400 cursor-not-allowed">Outcomes</a>
+                    <a href="#" class="hover:underline text-gray-400 cursor-not-allowed">Register Outcome</a>
+                @endif
 
 
                 <!-- Projects Links -->

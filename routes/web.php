@@ -38,9 +38,9 @@ Route::resource('participants', ParticipantController::class);
 // List projects for a participant
 Route::get('participants/{participant}/projects', [ParticipantController::class, 'projects'])->name('participants.projects');
 // Global Outcome CRUD
-Route::get('outcomes', [OutcomeController::class, 'index'])->name('outcomes.index');
-Route::get('outcomes/create', [OutcomeController::class, 'create'])->name('outcomes.create');
-Route::post('outcomes', [OutcomeController::class, 'store'])->name('outcomes.store');
+Route::get('projects/{project}/outcomes', [OutcomeController::class, 'index'])->name('projects.outcomes.index');
+Route::get('projects/{project}/outcomes/create', [OutcomeController::class, 'create'])->name('projects.outcomes.create');
+Route::post('projects/{project}/outcomes', [OutcomeController::class, 'store'])->name('projects.outcomes.store');
 Route::get('outcomes/{outcome}', [OutcomeController::class, 'show'])->name('outcomes.show');
 Route::get('outcomes/{outcome}/edit', [OutcomeController::class, 'edit'])->name('outcomes.edit');
 Route::put('outcomes/{outcome}', [OutcomeController::class, 'update'])->name('outcomes.update');
