@@ -46,19 +46,5 @@ Route::get('outcomes/{outcome}/edit', [OutcomeController::class, 'edit'])->name(
 Route::put('outcomes/{outcome}', [OutcomeController::class, 'update'])->name('outcomes.update');
 Route::delete('outcomes/{outcome}', [OutcomeController::class, 'destroy'])->name('outcomes.destroy');
 
-// ProjectParticipant (assign/remove participants to/from projects)
-Route::post('projects/{project}/participants', [ProjectParticipantController::class, 'assign'])->name('projects.participants.assign');
-Route::delete('projects/{project}/participants/{participant}', [ProjectParticipantController::class, 'remove'])->name('projects.participants.remove');
-// Outcome CRUD (by project)
-Route::get('projects/{project}/outcomes', [OutcomeController::class, 'index'])->name('projects.outcomes.index');
-Route::get('projects/{project}/outcomes/create', [OutcomeController::class, 'create'])->name('projects.outcomes.create');
-Route::post('projects/{project}/outcomes', [OutcomeController::class, 'store'])->name('projects.outcomes.store');
-Route::get('outcomes/{outcome}', [OutcomeController::class, 'show'])->name('outcomes.show');
-Route::get('outcomes/{outcome}/edit', [OutcomeController::class, 'edit'])->name('outcomes.edit');
-Route::put('outcomes/{outcome}', [OutcomeController::class, 'update'])->name('outcomes.update');
-Route::delete('outcomes/{outcome}', [OutcomeController::class, 'destroy'])->name('outcomes.destroy');
-
-// Search/filter routes (examples)
-Route::get('facilities/search', [FacilityController::class, 'search'])->name('facilities.search');
-Route::get('equipment/search', [EquipmentController::class, 'search'])->name('equipment.search');
-Route::get('services/search', [ServiceController::class, 'search'])->name('services.search');
+//Projects UI Views
+Route::get('/projects/view', [ProjectController::class, 'listView'])->name('projects.view');

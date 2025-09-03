@@ -8,74 +8,99 @@ use Illuminate\Http\Request;
 
 class EquipmentController extends Controller
 {
-    // Display paginated equipment list
-    public function index() {
-        $equipment = Equipment::paginate(10); 
-        return view('equipment.index', compact('equipment'));
+    /**
+     * Display a listing of the resource.
+     */
+    public function index()
+    {
+         $equipments = Equipment::paginate(10);
+        return view('equipment.index', compact('equipments'));
     }
 
-    // Show form to create new equipment
-    public function create() {
+    /**
+     * Show the form for creating a new resource.
+     */
+    public function create()
+    {
         $facilities = Facility::all();
 
-        // Define usage domains and support phases
-        $usageDomains = ['Research', 'Teaching', 'Maintenance', 'Production'];
-        $supportPhases = ['Planning', 'Implementation', 'Monitoring', 'Evaluation'];
+        // Dropdown options
+        $usageDomains = ['Research', 'Manufacturing', 'Testing', 'Education'];
+        $supportPhases = ['Prototype', 'Production', 'Maintenance', 'R&D'];
 
         return view('equipment.create', compact('facilities', 'usageDomains', 'supportPhases'));
     }
 
-    // Store new equipment
-    public function store(Request $request) {
-        $data = $request->validate([
-            'facility_id' => 'required|exists:facilities,id',
+    /**
+     * Store a newly created resource in storage.
+     */
+    public function store(Request $request)
+    {
+        $validated = $request->validate([
+            'facility_id' => 'required|exists:facilities,facility_id',
             'name' => 'required|string|max:255',
-            'capabilities' => 'nullable|string|max:255',
+            'capabilities' => 'nullable|string',
             'description' => 'nullable|string',
             'inventory_code' => 'nullable|string|max:100',
             'usage_domain' => 'nullable|string|max:100',
             'support_phase' => 'nullable|string|max:100',
         ]);
 
-        Equipment::create($data);
+        Equipment::create($validated);
 
-        return redirect()->route('equipment.index')->with('success','Equipment created.');
+        return redirect()->route('equipment.index')
+                         ->with('success', 'Equipment created successfully.');
     }
 
-    // Show single equipment
-    public function show(Equipment $equipment) {
-        return view('equipment.show', ['item' => $equipment]);
+    /**
+     * Display the specified resource.
+     */
+    public function show(Equipment $equipment)
+    {
+        return view('equipment.show', compact('equipment'));
     }
 
-    // Show form to edit equipment
-    public function edit(Equipment $equipment) {
+    /**
+     * Show the form for editing the specified resource.
+     */
+    public function edit(Equipment $equipment)
+    {
         $facilities = Facility::all();
-        $usageDomains = ['Research', 'Teaching', 'Maintenance', 'Production'];
-        $supportPhases = ['Planning', 'Implementation', 'Monitoring', 'Evaluation'];
+        $usageDomains = ['Research', 'Manufacturing', 'Testing', 'Education'];
+        $supportPhases = ['Prototype', 'Production', 'Maintenance', 'R&D'];
 
-        return view('equipment.edit', compact('equipment','facilities','usageDomains','supportPhases'));
+        return view('equipment.edit', compact('equipment', 'facilities', 'usageDomains', 'supportPhases'));
     }
 
-    // Update equipment
-    public function update(Request $request, Equipment $equipment) {
-        $data = $request->validate([
-            'facility_id' => 'required|exists:facilities,id',
+    /**
+     * Update the specified resource in storage.
+     */
+    public function update(Request $request, Equipment $equipment)
+    {
+        $validated = $request->validate([
+            'facility_id' => 'required|exists:facilities,facility_id',
             'name' => 'required|string|max:255',
-            'capabilities' => 'nullable|string|max:255',
+            'capabilities' => 'nullable|string',
             'description' => 'nullable|string',
             'inventory_code' => 'nullable|string|max:100',
             'usage_domain' => 'nullable|string|max:100',
             'support_phase' => 'nullable|string|max:100',
         ]);
 
-        $equipment->update($data);
+        $equipment->update($validated);
 
-        return redirect()->route('equipment.index')->with('success','Equipment updated.');
+        return redirect()->route('equipment.index')
+                         ->with('success', 'Equipment updated successfully.');
     }
 
-    // Delete equipment
-    public function destroy(Equipment $equipment) {
+    /**
+     * Remove the specified resource from storage.
+     */
+    public function destroy(Equipment $equipment)
+    {
         $equipment->delete();
-        return redirect()->route('equipment.index')->with('success','Equipment deleted.');
+
+        return redirect()->route('equipment.index')
+                         ->with('success', 'Equipment deleted successfully.');
     }
 }
