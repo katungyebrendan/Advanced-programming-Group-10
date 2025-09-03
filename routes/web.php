@@ -33,8 +33,10 @@ Route::resource('services', ServiceController::class);
 // List services by facility
 Route::get('facilities/{facility}/services', [ServiceController::class, 'byFacility'])->name('facilities.services');
 
+
 // Participant CRUD
 Route::resource('participants', ParticipantController::class);
+
 
 
 // List projects for a participant
