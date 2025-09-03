@@ -1,49 +1,81 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="container">
-    <h2>All Participants</h2>
+<div class="container mx-auto p-6">
+    <h1 class="text-2xl font-bold mb-4">Participants</h1>
 
-    @if(session('success'))
-        <div class="alert alert-success">{{ session('success') }}</div>
+    {{-- Link to the participant creation page --}}
+    <a href="{{ route('participants.create') }}" class="bg-blue-600 text-white px-4 py-2 rounded mb-4 inline-block">+ Add Participant</a>
+
+    @if (session('success'))
+        <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative mb-4" role="alert">
+            {{ session('success') }}
+        </div>
     @endif
 
-    <a href="{{ route('participants.create') }}" class="btn btn-success mb-3">Add Participant</a>
+    @if (session('error'))
+        <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4" role="alert">
+            {{ session('error') }}
+        </div>
+    @endif
 
-    @if($participants->count())
-        <table class="table table-bordered">
-            <thead>
+    <table class="table-auto border-collapse border border-gray-400 w-full">
+        <thead>
+            <tr class="bg-gray-200">
+                <th class="border px-4 py-2">ID</th>
+                <th class="border px-4 py-2">Full Name</th>
+                <th class="border px-4 py-2">Email</th>
+                <th class="border px-4 py-2">Affiliation</th>
+                <th class="border px-4 py-2">Specialization</th>
+                <th class="border px-4 py-2">Cross-Skilled</th>
+                <th class="border px-4 py-2">Institution</th>
+                <th class="border px-4 py-2">Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            @forelse ($participants as $participant)
                 <tr>
-                    <th>ID</th>
-                    <th>Name</th>
-                    <th>Email</th>
-                    <th>Phone</th>
-                    <th>Actions</th>
+                    <td class="border px-4 py-2">{{ $participant->participant_id }}</td>
+                    <td class="border px-4 py-2">{{ $participant->full_name }}</td>
+                    <td class="border px-4 py-2">{{ $participant->email ?? '-' }}</td>
+                    <td class="border px-4 py-2">{{ $participant->affiliation }}</td>
+                    <td class="border px-4 py-2">{{ $participant->specialization }}</td>
+                    <td class="border px-4 py-2 text-center">
+                        @if($participant->cross_skill_trained)
+                            <span class="bg-green-100 text-green-800 text-xs font-medium px-2.5 py-0.5 rounded">Yes</span>
+                        @else
+                            <span class="bg-gray-100 text-gray-800 text-xs font-medium px-2.5 py-0.5 rounded">No</span>
+                        @endif
+                    </td>
+                    <td class="border px-4 py-2">{{ $participant->institution }}</td>
+                    <td class="border px-4 py-2 space-x-2">
+                        {{-- View, Edit, Delete, and Projects links --}}
+                        <a href="{{ route('participants.show', $participant->participant_id) }}" class="text-blue-600 hover:text-blue-800">View</a>
+                        <a href="{{ route('participants.edit', $participant->participant_id) }}" class="text-yellow-600 hover:text-yellow-800">Edit</a>
+                        
+                        {{-- Delete form --}}
+                        <form action="{{ route('participants.destroy', $participant->participant_id) }}" method="POST" class="inline-block" onsubmit="return confirm('Are you sure you want to delete this participant?');">
+                            @csrf
+                            @method('DELETE')
+                            <button type="submit" class="text-red-600 hover:text-red-800">Delete</button>
+                        </form>
+                        
+                        <a href="{{ route('participants.projects', $participant->participant_id) }}" class="text-indigo-600 hover:text-indigo-800">Projects</a>
+                    </td>
                 </tr>
-            </thead>
-            <tbody>
-                @foreach($participants as $participant)
-                    <tr>
-                        <td>{{ $participant->id }}</td>
-                        <td>{{ $participant->name }}</td>
-                        <td>{{ $participant->email ?? '-' }}</td>
-                        <td>{{ $participant->phone ?? '-' }}</td>
-                        <td>
-                            <a href="{{ route('participants.show', $participant->id) }}" class="btn btn-sm btn-primary">View</a>
-                            <a href="{{ route('participants.edit', $participant->id) }}" class="btn btn-sm btn-warning">Edit</a>
-                            <form action="{{ route('participants.destroy', $participant->id) }}" method="POST" style="display:inline-block;">
-                                @csrf
-                                @method('DELETE')
-                                <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Are you sure?')">Delete</button>
-                            </form>
-                            <a href="{{ route('participants.projects', $participant->id) }}" class="btn btn-sm btn-info">Projects</a>
-                        </td>
-                    </tr>
-                @endforeach
-            </tbody>
-        </table>
-    @else
-        <p>No participants found.</p>
+            @empty
+                <tr>
+                    <td colspan="8" class="text-center text-gray-500 py-4">No participants found.</td>
+                </tr>
+            @endforelse
+        </tbody>
+    </table>
+
+    {{-- Pagination Links --}}
+    @if($participants->hasPages())
+        <div class="mt-4">
+            {{ $participants->links() }}
+        </div>
     @endif
 </div>
 @endsection

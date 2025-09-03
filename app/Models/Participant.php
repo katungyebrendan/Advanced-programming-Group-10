@@ -16,6 +16,7 @@ class Participant extends Model
         'specialization',
         'cross_skill_trained',
         'institution',
+        'description',
     ];
 
     protected $casts = [
