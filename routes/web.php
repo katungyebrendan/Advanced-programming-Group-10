@@ -35,8 +35,12 @@ Route::get('facilities/{facility}/services', [ServiceController::class, 'byFacil
 
 // Participant CRUD
 Route::resource('participants', ParticipantController::class);
+
+
 // List projects for a participant
 Route::get('participants/{participant}/projects', [ParticipantController::class, 'projects'])->name('participants.projects');
+
+
 // Global Outcome CRUD
 Route::get('projects/{project}/outcomes', [OutcomeController::class, 'index'])->name('projects.outcomes.index');
 Route::get('projects/{project}/outcomes/create', [OutcomeController::class, 'create'])->name('projects.outcomes.create');
@@ -48,3 +52,10 @@ Route::delete('outcomes/{outcome}', [OutcomeController::class, 'destroy'])->name
 
 //Projects UI Views
 Route::get('/projects/view', [ProjectController::class, 'listView'])->name('projects.view');
+Route::resource('projects', ProjectController::class);
+
+//Outcome CRUD
+Route::resource('outcomes', OutcomeController::class);
+
+// ProjectParticipant CRUD
+Route::resource('project_participants', ProjectParticipantController::class);
