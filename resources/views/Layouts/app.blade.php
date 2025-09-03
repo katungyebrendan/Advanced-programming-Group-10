@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -6,71 +5,82 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Facility Management</title>
 
-    <!-- Tailwind CSS (via CDN, you can also compile with Laravel Mix if preferred) -->
+    <!-- Google Font: Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* This Grid layout ensures the footer is always at the bottom */
+        body {
+            font-family: 'Inter', sans-serif;
+            display: grid;
+            grid-template-rows: auto 1fr auto;
+            min-height: 100vh;
+        }
+        .nav-link {
+            @apply px-3 py-2 rounded-lg transition-all duration-300 hover:bg-gray-800 hover:text-white cursor-pointer;
+        }
+    </style>
 
     <!-- CSRF Token for AJAX -->
     <meta name="csrf-token" content="{{ csrf_token() }}">
 </head>
-<body class="bg-gray-50 text-gray-800">
+
+<body class="bg-gray-100 text-gray-800">
 
     <!-- Navbar -->
-    <nav class="bg-blue-700 text-white p-4">
-        <div class="container mx-auto flex justify-between items-center">
-            <a href="/" class="font-bold text-lg">Capstone System</a>
-            <div class="space-x-6">
-                <!-- Facilities Links -->
-                <a href="{{ route('facilities.index') }}" class="hover:underline {{ request()->routeIs('facilities.*') ? 'underline' : '' }}">Facilities</a>
-                <a href="{{ route('facilities.create') }}" class="hover:underline {{ request()->routeIs('facilities.create') ? 'underline' : '' }}">Register Facility</a>
-
-                <!-- Programs Links -->
-                <a href="{{ route('programs.index') }}" class="hover:underline {{ request()->routeIs('programs.*') ? 'underline' : '' }}">Programs</a>
-                <a href="{{ route('programs.create') }}" class="hover:underline {{ request()->routeIs('programs.create') ? 'underline' : '' }}">Register Program</a>
-        
-                <!-- Equipment Links -->
-                <a href="{{ route('equipment.index') }}" class="hover:underline {{ request()->routeIs('equipment.*') ? 'underline' : '' }}">Equipment</a>
-                <a href="{{ route('equipment.create') }}" class="hover:underline {{ request()->routeIs('equipment.create') ? 'underline' : '' }}">Register Equipment</a>
-
-                <!-- Services Links -->
-                <a href="{{ route('services.index') }}" class="hover:underline {{ request()->routeIs('services.*') ? 'underline' : '' }}">Services</a>
-                <a href="{{ route('services.create') }}" class="hover:underline {{ request()->routeIs('services.create') ? 'underline' : '' }}">Register Service</a>
-
-                <!-- Participants Links -->
-                <a href="{{ route('participants.index') }}" class="hover:underline {{ request()->routeIs('participants.*') ? 'underline' : '' }}">Participants</a>
-                <a href="{{ route('participants.create') }}" class="hover:underline {{ request()->routeIs('participants.create') ? 'underline' : '' }}">Register Participant</a>
-                <!-- Outcomes Links -->
-                @if(isset($project) && $project->id)
-                    <a href="{{ route('projects.outcomes.index', $project->id) }}" 
-                    class="hover:underline {{ request()->routeIs('projects.outcomes.*') ? 'underline' : '' }}">
+    <nav class="bg-gray-900 text-white shadow-lg py-4 px-6 rounded-b-xl">
+        <div class="container mx-auto flex flex-col sm:flex-row justify-between items-center space-y-4 sm:space-y-0">
+            <a href="/" class="font-bold text-2xl tracking-wide">Capstone System</a>
+            <div class="flex flex-wrap justify-center sm:justify-end items-center gap-2 sm:gap-6 text-sm md:text-base">
+                <a href="{{ route('facilities.index') }}" 
+                   class="nav-link {{ request()->routeIs('facilities.*') ? 'underline underline-offset-4' : '' }}">
+                    Facilities
+                </a>
+                <a href="{{ route('programs.index') }}" 
+                   class="nav-link {{ request()->routeIs('programs.*') ? 'underline underline-offset-4' : '' }}">
+                    Programs
+                </a>
+                <a href="{{ route('equipment.index') }}" 
+                   class="nav-link {{ request()->routeIs('equipment.*') ? 'underline underline-offset-4' : '' }}">
+                    Equipment
+                </a>
+                <a href="{{ route('services.index') }}" 
+                   class="nav-link {{ request()->routeIs('services.*') ? 'underline underline-offset-4' : '' }}">
+                    Services
+                </a>
+                <a href="{{ route('projects.index') }}" 
+                   class="nav-link {{ request()->routeIs('projects.*') ? 'underline underline-offset-4' : '' }}">
+                    Projects
+                </a>
+                <a href="{{ route('participants.index') }}" 
+                   class="nav-link {{ request()->routeIs('participants.*') ? 'underline underline-offset-4' : '' }}">
+                    Participants
+                </a>
+                <a href="{{ route('project_participants.index') }}" 
+                   class="nav-link {{ request()->routeIs('project_participants.*') ? 'underline underline-offset-4' : '' }}">
+                    Project Participants
+                </a>
+                <a href="{{ route('outcomes.index') }}" 
+                   class="nav-link {{ request()->routeIs('outcomes.*') ? 'underline underline-offset-4' : '' }}">
                     Outcomes
-                    </a>
-
-                    <a href="{{ route('projects.outcomes.create', $project->id) }}" 
-                    class="hover:underline {{ request()->routeIs('projects.outcomes.create') ? 'underline' : '' }}">
-                    Register Outcome
-                    </a>
-                @else
-                    <!-- Optional fallback if $project is not set -->
-                    <a href="#" class="hover:underline text-gray-400 cursor-not-allowed">Outcomes</a>
-                    <a href="#" class="hover:underline text-gray-400 cursor-not-allowed">Register Outcome</a>
-                @endif
-
-
-                <!-- Projects Links -->
-                <a href="{{ route('projects.view') }}" class="hover:underline {{ request()->routeIs('projects.*') ? 'underline' : '' }}">Projects</a>
+                </a>
             </div>
         </div>
     </nav>
 
-    <!-- Page Content -->
-    <main class="container mx-auto py-8">
+    <!-- Main Content -->
+    <main class="container mx-auto py-8 px-4 overflow-y-auto">
         @yield('content')
     </main>
 
     <!-- Footer -->
-    <footer class="bg-gray-200 py-4 mt-8">
-        <div class="container mx-auto text-center text-gray-600">
-            &copy; {{ date('Y') }} Capstone Project. All rights reserved.
+    <footer class="bg-gray-800 text-white py-6">
+        <div class="container mx-auto text-center text-sm text-gray-400">
+            &copy; {{ date('Y') }} Capstone System. All rights reserved.
         </div>
     </footer>
 
