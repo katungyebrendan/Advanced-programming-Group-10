@@ -38,6 +38,10 @@
                 <!-- Participants Links -->
                 <a href="{{ route('participants.index') }}" class="hover:underline {{ request()->routeIs('participants.*') ? 'underline' : '' }}">Participants</a>
                 <a href="{{ route('participants.create') }}" class="hover:underline {{ request()->routeIs('participants.create') ? 'underline' : '' }}">Register Participant</a>
+                <!-- Outcomes Links-->
+                 <a href="{{ route('outcomes.index') }}" class="hover:underline {{ request()->routeIs('outcomes.*') ? 'underline' : '' }}">Outcomes</a>
+                 <a href="{{ route('outcomes.create') }}" class="hover:underline {{ request()->routeIs('outcomes.create') ? 'underline' : '' }}">Register Outcome</a>
+
 
                 <!-- Projects Links -->
                 <a href="{{ route('projects.view') }}" class="hover:underline {{ request()->routeIs('projects.*') ? 'underline' : '' }}">Projects</a>

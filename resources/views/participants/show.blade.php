@@ -1,15 +1,16 @@
-{{-- filepath: resources/views/participants/show.blade.php --}}
 @extends('layouts.app')
 
 @section('content')
-<h2>Participant Details</h2>
-<ul class="list-group">
-    <li class="list-group-item"><strong>Name:</strong> {{ $participant->full_name }}</li>
-    <li class="list-group-item"><strong>Email:</strong> {{ $participant->email }}</li>
-    <li class="list-group-item"><strong>Affiliation:</strong> {{ $participant->affiliation }}</li>
-    <li class="list-group-item"><strong>Institution:</strong> {{ $participant->institution }}</li>
-    <li class="list-group-item"><strong>Specialization:</strong> {{ $participant->specialization }}</li>
-    <li class="list-group-item"><strong>Cross-Skill Trained:</strong> {{ $participant->cross_skill_trained ? 'Yes' : 'No' }}</li>
-</ul>
-<a href="{{ route('participants.index') }}" class="btn btn-secondary mt-3">Back</a>
+<div class="container">
+    <h2>Participant Details</h2>
+    <table class="table table-bordered">
+        <tr><th>ID</th><td>{{ $participant->id }}</td></tr>
+        <tr><th>Name</th><td>{{ $participant->name }}</td></tr>
+        <tr><th>Email</th><td>{{ $participant->email ?? '-' }}</td></tr>
+        <tr><th>Phone</th><td>{{ $participant->phone ?? '-' }}</td></tr>
+    </table>
+    <a href="{{ route('participants.index') }}" class="btn btn-secondary">Back</a>
+    <a href="{{ route('participants.edit', $participant->id) }}" class="btn btn-warning">Edit</a>
+    <a href="{{ route('participants.projects', $participant->id) }}" class="btn btn-info">Projects</a>
+</div>
 @endsection
