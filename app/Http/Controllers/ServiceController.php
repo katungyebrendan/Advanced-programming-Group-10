@@ -2,46 +2,52 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Services;
 use Illuminate\Http\Request;
 
-class ServicesController extends Controller
+class ServiceController extends Controller
 {
-    public function index() {
-        $services = Services::all();
-        return view('services.index', compact('services'));
+    public function index()
+    {
+        return view("services.index");
     }
 
-    public function create() {
-        return view('services.create');
+    public function create()
+    {
+        return view("services.create");
     }
 
-    public function store(Request $request) {
-        $data = $request->validate([
-            'name' => 'required',
-        ]);
-        Services::create($data);
-        return redirect()->route('services.index')->with('success','Services created.');
+    public function store(Request $request)
+    {
+        return view("services.store");
     }
 
-    public function show(Services $service) {
-        return view('services.show', ['item' => $service]);
+    public function show($id)
+    {
+        return view("show", ["id"=> $id]);
     }
 
-    public function edit(Services $service) {
-        return view('services.edit', ['item' => $service]);
+    public function edit($id)
+    {
+        return view(view: "edit", data: ["id"=> $id]);
     }
 
-    public function update(Request $request, Services $service) {
-        $data = $request->validate([
-            'name' => 'required',
-        ]);
-        $service->update($data);
-        return redirect()->route('services.index')->with('success','Services updated.');
+    public function update(Request $request, $id)
+    {
+        return view("", ["id"=> $id]);
     }
 
-    public function destroy(Services $service) {
-        $service->delete();
-        return redirect()->route('services.index')->with('success','Services deleted.');
+    public function destroy($id)
+    {
+        return view("", ["id"=> $id]);
+    }
+
+    public function byFacility($facilityId)
+    {
+        return view("", [""=> $facilityId]);
+    }
+
+    public function search(Request $request)
+    {
+        return view("");
     }
 }
