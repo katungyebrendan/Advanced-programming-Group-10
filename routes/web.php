@@ -9,7 +9,7 @@ use App\Http\Controllers\FacilityController;
 use App\Http\Controllers\ServiceController;
 use App\Http\Controllers\ParticipantController;
 use App\Http\Controllers\OutcomeController;
-use App\Http\Controllers\ProjectParticipantController;
+
 
 Route::get('/', function () {
     return redirect()->route('programs.index');
@@ -59,5 +59,3 @@ Route::resource('projects', ProjectController::class);
 //Outcome CRUD
 Route::resource('outcomes', OutcomeController::class);
 
-// ProjectParticipant CRUD
-Route::resource('project_participants', ProjectParticipantController::class);

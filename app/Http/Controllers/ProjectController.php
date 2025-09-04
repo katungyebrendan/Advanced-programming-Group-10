@@ -9,11 +9,18 @@ use Illuminate\Http\Request;
 
 class ProjectController extends Controller
 {
-    // List all projects
+    // List all projects (with pagination)
     public function index()
     {
-        $projects = Project::with(['program', 'facility'])->get();
-        return view('projects.index', compact('projects'));
+        // Use paginate instead of get()
+        $projects = Project::with(['program', 'facility'])
+            ->paginate(10) // Adjust number per page as needed
+            ->withQueryString();
+
+        $programs = Program::all();
+        $facilities = Facility::all();
+
+        return view('projects.index', compact('projects', 'programs', 'facilities'));
     }
 
     // Show the form to create a new project
@@ -29,8 +36,8 @@ class ProjectController extends Controller
     {
         $validated = $request->validate([
             'title' => 'required|string|max:255',
-            'program_id' => 'required|exists:programs,id',
-            'facility_id' => 'required|exists:facilities,id',
+            'program_name' => 'required|string|exists:programs,name',
+            'facility_name' => 'required|string|exists:facilities,name',
             'nature_of_project' => 'nullable|string|max:255',
             'description' => 'nullable|string',
             'innovation_focus' => 'nullable|string|max:255',
@@ -39,7 +46,20 @@ class ProjectController extends Controller
             'commercialization_plan' => 'nullable|string|max:255',
         ]);
 
-        Project::create($validated);
+        $program = Program::where('name', $validated['program_name'])->first();
+        $facility = Facility::where('name', $validated['facility_name'])->first();
+
+        Project::create([
+            'title' => $validated['title'],
+            'program_id' => $program->program_id,
+            'facility_id' => $facility->facility_id,
+            'nature_of_project' => $validated['nature_of_project'] ?? null,
+            'description' => $validated['description'] ?? null,
+            'innovation_focus' => $validated['innovation_focus'] ?? null,
+            'prototype_stage' => $validated['prototype_stage'] ?? null,
+            'testing_requirements' => $validated['testing_requirements'] ?? null,
+            'commercialization_plan' => $validated['commercialization_plan'] ?? null,
+        ]);
 
         return redirect()->route('projects.index')->with('success', 'Project created successfully.');
     }
@@ -65,8 +85,8 @@ class ProjectController extends Controller
     {
         $validated = $request->validate([
             'title' => 'required|string|max:255',
-            'program_id' => 'required|exists:programs,id',
-            'facility_id' => 'required|exists:facilities,id',
+            'program_id' => 'required|exists:programs,program_id',
+            'facility_id' => 'required|exists:facilities,facility_id',
             'nature_of_project' => 'nullable|string|max:255',
             'description' => 'nullable|string',
             'innovation_focus' => 'nullable|string|max:255',
