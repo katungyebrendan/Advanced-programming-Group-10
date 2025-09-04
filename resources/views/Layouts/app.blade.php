@@ -56,8 +56,8 @@
                 @endif
 
 
-                <!-- Projects Links -->
-                <a href="{{ route('projects.view') }}" class="hover:underline {{ request()->routeIs('projects.*') ? 'underline' : '' }}">Projects</a>
+                <a href="{{ route('projects.index') }}" 
+                class="hover:underline {{ request()->routeIs('projects.*') ? 'underline' : '' }}">Projects</a>
             </div>
         </div>
     </nav>

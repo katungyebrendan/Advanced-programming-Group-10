@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Models\Participant;
-use App\Models\Project;
 use Illuminate\Http\Request;
 
 class ParticipantController extends Controller
@@ -25,9 +24,12 @@ class ParticipantController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'name' => 'required|string|max:255',
-            'email' => 'nullable|email|max:255',
-            'phone' => 'nullable|string|max:20',
+            'full_name'          => 'required|string|max:255',
+            'email'              => 'required|email|max:255|unique:participants,email',
+            'affiliation'        => 'nullable|in:CS,SE,Engineering,Other',
+            'specialization'     => 'nullable|in:Software,Hardware,Business',
+            'cross_skill_trained'=> 'boolean',
+            'institution'        => 'nullable|in:SCIT,CEDAT,UniPod,UIRI,Lwera',
         ]);
 
         Participant::create($validated);
@@ -53,15 +55,19 @@ class ParticipantController extends Controller
     public function update(Request $request, $id)
     {
         $validated = $request->validate([
-            'name' => 'required|string|max:255',
-            'email' => 'nullable|email|max:255',
-            'phone' => 'nullable|string|max:20',
+            'full_name'          => 'required|string|max:255',
+            'email'              => 'required|email|max:255|unique:participants,email,' . $id . ',participant_id',
+            'affiliation'        => 'nullable|in:CS,SE,Engineering,Other',
+            'specialization'     => 'nullable|in:Software,Hardware,Business',
+            'cross_skill_trained'=> 'boolean',
+            'institution'        => 'nullable|in:SCIT,CEDAT,UniPod,UIRI,Lwera',
         ]);
 
         $participant = Participant::findOrFail($id);
         $participant->update($validated);
 
-        return redirect()->route('participants.show', $participant->id)->with('success', 'Participant updated successfully.');
+        return redirect()->route('participants.show', $participant->participant_id)
+                         ->with('success', 'Participant updated successfully.');
     }
 
     // Delete a participant
@@ -77,7 +83,7 @@ class ParticipantController extends Controller
     public function projects($participantId)
     {
         $participant = Participant::findOrFail($participantId);
-        $projects = $participant->projects; // assumes Participant has a 'projects' relationship
+        $projects = $participant->projects; // uses belongsToMany from the model
 
         return view('participants.projects', compact('participant', 'projects'));
     }

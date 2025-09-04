@@ -22,21 +22,20 @@ class Participant extends Model
         'cross_skill_trained' => 'boolean',
     ];
 
-    // Define enum values
     const AFFILIATIONS = ['CS', 'SE', 'Engineering', 'Other'];
     const SPECIALIZATIONS = ['Software', 'Hardware', 'Business'];
     const INSTITUTIONS = ['SCIT', 'CEDAT', 'UniPod', 'UIRI', 'Lwera'];
 
-    // Relationships
+    // 🔹 Relationships
     public function projects()
     {
-        return $this->belongsToMany(Project::class, 'project_participants', 'participant_id', 'project_id')
-                    ->withPivot('role_on_project', 'skill_role');
-    }
-
-    public function projectParticipants()
-    {
-        return $this->hasMany(ProjectParticipant::class, 'participant_id');
+        return $this->belongsToMany(
+            Project::class,
+            'project_participants',
+            'participant_id',
+            'project_id'
+        )->withPivot('role_on_project', 'skill_role')
+         ->withTimestamps();
     }
 
     // 🔹 Query scopes
@@ -68,19 +67,17 @@ class Participant extends Model
         });
     }
 
-    // 🔹 Business logic methods
+    // 🔹 Utility methods
     public function canBeDeleted(): bool
     {
-        // Participants cannot be deleted if they have active project assignments
         return $this->projects()->count() === 0;
     }
 
     public function getDeletionBlockReason(): string
     {
-        if ($this->projects()->count() > 0) {
-            return 'Participant cannot be deleted because they are assigned to active projects.';
-        }
-        return 'Unknown reason';
+        return $this->projects()->count() > 0
+            ? 'Participant cannot be deleted because they are assigned to active projects.'
+            : 'Unknown reason';
     }
 
     public function getActiveProjectsCount(): int
@@ -95,16 +92,12 @@ class Participant extends Model
 
     public function getProjectRoles(): array
     {
-        return $this->projectParticipants()
-                    ->with('project')
-                    ->get()
-                    ->map(function ($participation) {
-                        return [
-                            'project_title' => $participation->project->title,
-                            'role' => $participation->role_on_project,
-                            'skill_role' => $participation->skill_role,
-                        ];
-                    })->toArray();
+        return $this->projects()->withPivot('role_on_project', 'skill_role')->get()
+            ->map(fn($project) => [
+                'project_title' => $project->title,
+                'role' => $project->pivot->role_on_project,
+                'skill_role' => $project->pivot->skill_role,
+            ])->toArray();
     }
 
     public function canTakeOnMoreProjects(int $maxProjects = 3): bool
@@ -125,9 +118,7 @@ class Participant extends Model
     public function getSkillsDescription(): string
     {
         $skills = [$this->specialization];
-        if ($this->cross_skill_trained) {
-            $skills[] = 'Cross-skilled';
-        }
+        if ($this->cross_skill_trained) $skills[] = 'Cross-skilled';
         return implode(', ', $skills);
     }
 }

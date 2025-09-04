@@ -9,84 +9,154 @@ use Illuminate\Http\Request;
 
 class ProjectController extends Controller
 {
-    // List all projects
-    public function index()
+    public function index(Request $request)
     {
-        $projects = Project::with(['program', 'facility'])->get();
-        return view('projects.index', compact('projects'));
+        $query = Project::with(['program', 'facility']);
+
+        // Filter by program if specified
+        if ($request->filled('program_id')) {
+            $query->byProgram($request->program_id);
+        }
+
+        // Filter by facility if specified
+        if ($request->filled('facility_id')) {
+            $query->byFacility($request->facility_id);
+        }
+
+        // Filter by nature if specified
+        if ($request->filled('nature')) {
+            $query->byNature($request->nature);
+        }
+
+        // Filter by stage if specified
+        if ($request->filled('stage')) {
+            $query->byStage($request->stage);
+        }
+
+        // Search functionality
+        if ($request->filled('search')) {
+            $query->search($request->search);
+        }
+
+        $projects = $query->orderBy('title')->paginate(12);
+
+        // Get filter options
+        $programs = Program::orderBy('name')->get();
+        $facilities = Facility::orderBy('name')->get();
+
+        return view('projects.index', compact('projects', 'programs', 'facilities'));
     }
 
-    // Show the form to create a new project
     public function create()
     {
-        $programs = Program::all();
-        $facilities = Facility::all();
+        $programs = Program::orderBy('name')->get();
+        $facilities = Facility::orderBy('name')->get();
+        
         return view('projects.create', compact('programs', 'facilities'));
     }
 
-    // Store a new project
     public function store(Request $request)
     {
-        $validated = $request->validate([
-            'title' => 'required|string|max:255',
-            'program_id' => 'required|exists:programs,id',
-            'facility_id' => 'required|exists:facilities,id',
-            'nature_of_project' => 'nullable|string|max:255',
-            'description' => 'nullable|string',
-            'innovation_focus' => 'nullable|string|max:255',
-            'prototype_stage' => 'nullable|string|max:255',
-            'testing_requirements' => 'nullable|string|max:255',
-            'commercialization_plan' => 'nullable|string|max:255',
-        ]);
+        try {
+            $data = $request->validate([
+                'program_id' => 'required|exists:programs,program_id',
+                'facility_id' => 'required|exists:facilities,facility_id',
+                'title' => 'required|string|max:255',
+                'nature_of_project' => 'required|in:' . implode(',', Project::NATURE_OPTIONS),
+                'description' => 'required|string',
+                'innovation_focus' => 'nullable|string|max:255',
+                'prototype_stage' => 'required|in:' . implode(',', Project::PROTOTYPE_STAGES),
+                'testing_requirements' => 'nullable|string',
+                'commercialization_plan' => 'nullable|string',
+            ]);
 
-        Project::create($validated);
+            $project = Project::create($data);
 
-        return redirect()->route('projects.view')->with('success', 'Project created successfully.');
+            return redirect()->route('projects.index')
+                           ->with('success', 'Project created successfully!');
+
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return back()->withErrors($e->errors())->withInput();
+        } catch (\Exception $e) {
+            return back()->with('error', 'An error occurred while creating the project: ' . $e->getMessage())->withInput();
+        }
     }
 
-    // Show a single project
-    public function show($id)
+    public function show(Project $project)
     {
-        $project = Project::with(['program', 'facility'])->findOrFail($id);
+        $project->load(['program', 'facility', 'participants', 'outcomes']);
         return view('projects.show', compact('project'));
     }
 
-    // Show the form to edit a project
-    public function edit($id)
+    public function edit(Project $project)
     {
-        $project = Project::findOrFail($id);
-        $programs = Program::all();
-        $facilities = Facility::all();
+        $programs = Program::orderBy('name')->get();
+        $facilities = Facility::orderBy('name')->get();
+        
         return view('projects.edit', compact('project', 'programs', 'facilities'));
     }
 
-    // Update a project
-    public function update(Request $request, $id)
+    public function update(Request $request, Project $project)
     {
-        $validated = $request->validate([
-            'title' => 'required|string|max:255',
-            'program_id' => 'required|exists:programs,id',
-            'facility_id' => 'required|exists:facilities,id',
-            'nature_of_project' => 'nullable|string|max:255',
-            'description' => 'nullable|string',
-            'innovation_focus' => 'nullable|string|max:255',
-            'prototype_stage' => 'nullable|string|max:255',
-            'testing_requirements' => 'nullable|string|max:255',
-            'commercialization_plan' => 'nullable|string|max:255',
-        ]);
+        try {
+            $data = $request->validate([
+                'program_id' => 'required|exists:programs,program_id',
+                'facility_id' => 'required|exists:facilities,facility_id',
+                'title' => 'required|string|max:255',
+                'nature_of_project' => 'required|in:' . implode(',', Project::NATURE_OPTIONS),
+                'description' => 'required|string',
+                'innovation_focus' => 'nullable|string|max:255',
+                'prototype_stage' => 'required|in:' . implode(',', Project::PROTOTYPE_STAGES),
+                'testing_requirements' => 'nullable|string',
+                'commercialization_plan' => 'nullable|string',
+            ]);
 
-        $project = Project::findOrFail($id);
-        $project->update($validated);
+            $project->update($data);
 
-        return redirect()->route('projects.view')->with('success', 'Project updated successfully.');
+            return redirect()->route('projects.index')
+                           ->with('success', 'Project updated successfully!');
+
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return back()->withErrors($e->errors())->withInput();
+        } catch (\Exception $e) {
+            return back()->with('error', 'An error occurred while updating the project: ' . $e->getMessage())->withInput();
+        }
     }
 
-    // Delete a project
-    public function destroy($id)
+    public function destroy(Project $project)
     {
-        $project = Project::findOrFail($id);
-        $project->delete();
+        try {
+            if (!$project->canBeDeleted()) {
+                return back()->with('error', $project->getDeletionBlockReason());
+            }
 
-        return redirect()->route('projects.view')->with('success', 'Project deleted successfully.');
+            $project->delete();
+            return redirect()->route('projects.index')
+                           ->with('success', 'Project deleted successfully!');
+
+        } catch (\Exception $e) {
+            return back()->with('error', 'An error occurred while deleting the project: ' . $e->getMessage());
+        }
+    }
+
+    // Additional methods for specific use cases
+    public function byProgram(Program $program)
+    {
+        $projects = Project::byProgram($program->program_id)
+                          ->with(['facility'])
+                          ->orderBy('title')
+                          ->paginate(12);
+        
+        return view('projects.by-program', compact('projects', 'program'));
+    }
+
+    public function byFacility(Facility $facility)
+    {
+        $projects = Project::byFacility($facility->facility_id)
+                          ->with(['program'])
+                          ->orderBy('title')
+                          ->paginate(12);
+        
+        return view('projects.by-facility', compact('projects', 'facility'));
     }
 }

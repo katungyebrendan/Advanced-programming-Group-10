@@ -25,6 +25,12 @@ Route::resource('programs', ProgramController::class);
 Route::resource('equipment', EquipmentController::class);
 
 // Projects UI Views
+Route::resource('projects', ProjectController::class);
+
+// Additional routes for specific use cases
+Route::get('programs/{program}/projects', [ProjectController::class, 'byProgram'])->name('programs.projects');
+Route::get('facilities/{facility}/projects', [ProjectController::class, 'byFacility'])->name('facilities.projects');
+
 Route::get('/projects/view', [ProjectController::class, 'index'])->name('projects.view');
 Route::get('/projects/create', [ProjectController::class, 'create'])->name('projects.create');
 Route::get('/projects/{id}/edit', [ProjectController::class, 'edit'])->name('projects.edit');
