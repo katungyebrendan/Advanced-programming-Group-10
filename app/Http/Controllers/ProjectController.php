@@ -61,7 +61,7 @@ class ProjectController extends Controller
             'commercialization_plan' => $validated['commercialization_plan'] ?? null,
         ]);
 
-        return redirect()->route('projects.view')->with('success', 'Project created successfully.');
+        return redirect()->route('projects.index')->with('success', 'Project created successfully.');
     }
 
     // Show a single project

@@ -58,4 +58,3 @@ Route::resource('projects', ProjectController::class);
 
 //Outcome CRUD
 Route::resource('outcomes', OutcomeController::class);
-
