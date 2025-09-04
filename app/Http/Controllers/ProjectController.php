@@ -41,7 +41,7 @@ class ProjectController extends Controller
 
         Project::create($validated);
 
-        return redirect()->route('projects.view')->with('success', 'Project created successfully.');
+        return redirect()->route('projects.index')->with('success', 'Project created successfully.');
     }
 
     // Show a single project
@@ -78,7 +78,7 @@ class ProjectController extends Controller
         $project = Project::findOrFail($id);
         $project->update($validated);
 
-        return redirect()->route('projects.view')->with('success', 'Project updated successfully.');
+        return redirect()->route('projects.index')->with('success', 'Project updated successfully.');
     }
 
     // Delete a project
@@ -87,6 +87,6 @@ class ProjectController extends Controller
         $project = Project::findOrFail($id);
         $project->delete();
 
-        return redirect()->route('projects.view')->with('success', 'Project deleted successfully.');
+        return redirect()->route('projects.index')->with('success', 'Project deleted successfully.');
     }
 }
