@@ -60,10 +60,6 @@
                    class="nav-link {{ request()->routeIs('participants.*') ? 'underline underline-offset-4' : '' }}">
                     Participants
                 </a>
-                <a href="{{ route('project_participants.index') }}" 
-                   class="nav-link {{ request()->routeIs('project_participants.*') ? 'underline underline-offset-4' : '' }}">
-                    Project Participants
-                </a>
                 <a href="{{ route('outcomes.index') }}" 
                    class="nav-link {{ request()->routeIs('outcomes.*') ? 'underline underline-offset-4' : '' }}">
                     Outcomes
