@@ -103,10 +103,15 @@ class ProjectController extends Controller
 
     // Delete a project
     public function destroy($id)
-    {
-        $project = Project::findOrFail($id);
-        $project->delete();
+{
+    $project = Project::findOrFail($id);
+    
+    // Delete all participants associated with this project first
+    $project->participants()->delete();
+    
+    // Now delete the project
+    $project->delete();
 
-        return redirect()->route('projects.index')->with('success', 'Project deleted successfully.');
-    }
+    return redirect()->route('projects.index')->with('success', 'Project deleted successfully.');
+}
 }
