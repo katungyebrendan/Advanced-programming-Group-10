@@ -3,7 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Service extends Model
 {
@@ -22,28 +22,28 @@ class Service extends Model
     const SKILL_TYPES = ['Hardware', 'Software', 'Integration'];
 
     // Relationships
-    public function facility()
+    public function facility(): BelongsTo
     {
-        return $this->belongsTo(Facility::class, 'facility_id');
+        return $this->belongsTo(Facility::class, 'facility_id', 'facility_id');
     }
 
-    // 🔹 Query scopes
-    public function scopeByCategory(Builder $query, ?string $category): Builder
+    // Query scopes
+    public function scopeByCategory($query, $category)
     {
         return $category ? $query->where('category', $category) : $query;
     }
 
-    public function scopeBySkillType(Builder $query, ?string $skillType): Builder
+    public function scopeBySkillType($query, $skillType)
     {
         return $skillType ? $query->where('skill_type', $skillType) : $query;
     }
 
-    public function scopeByFacility(Builder $query, ?int $facilityId): Builder
+    public function scopeByFacility($query, $facilityId)
     {
         return $facilityId ? $query->where('facility_id', $facilityId) : $query;
     }
 
-    public function scopeSearch(Builder $query, string $term): Builder
+    public function scopeSearch($query, $term)
     {
         return $query->where(function ($q) use ($term) {
             $q->where('name', 'LIKE', "%{$term}%")
@@ -51,32 +51,16 @@ class Service extends Model
         });
     }
 
-    // 🔹 Business logic methods
+    // Business logic methods
     public function canBeDeleted(): bool
     {
         // Services can typically be deleted unless they're referenced in active projects
-        // This would require additional logic if you track service usage in projects
         return true;
     }
 
     public function getDeletionBlockReason(): string
     {
-        // Placeholder for future constraints
         return 'Service is currently in use and cannot be deleted.';
-    }
-
-    public function matchesProjectRequirements(array $requirements): bool
-    {
-        // Helper method to match services to project requirements
-        if (isset($requirements['category']) && $this->category !== $requirements['category']) {
-            return false;
-        }
-        
-        if (isset($requirements['skill_type']) && $this->skill_type !== $requirements['skill_type']) {
-            return false;
-        }
-        
-        return true;
     }
 
     public function getDisplayName(): string
