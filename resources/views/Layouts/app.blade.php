@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Facility Management</title>
+    <title>Capstone System</title>
 
     <!-- Google Font: Inter -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -13,7 +13,6 @@
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        /* This Grid layout ensures the footer is always at the bottom */
         body {
             font-family: 'Inter', sans-serif;
             display: grid;
@@ -25,7 +24,6 @@
         }
     </style>
 
-    <!-- CSRF Token for AJAX -->
     <meta name="csrf-token" content="{{ csrf_token() }}">
 </head>
 
@@ -34,7 +32,7 @@
     <!-- Navbar -->
     <nav class="bg-gray-900 text-white shadow-lg py-4 px-6 rounded-b-xl">
         <div class="container mx-auto flex flex-col sm:flex-row justify-between items-center space-y-4 sm:space-y-0">
-            <a href="/" class="font-bold text-2xl tracking-wide">Capstone System</a>
+            <a href="{{ route('programs.index') }}" class="font-bold text-2xl tracking-wide">Capstone System</a>
             <div class="flex flex-wrap justify-center sm:justify-end items-center gap-2 sm:gap-6 text-sm md:text-base">
                 <a href="{{ route('facilities.index') }}" 
                    class="nav-link {{ request()->routeIs('facilities.*') ? 'underline underline-offset-4' : '' }}">
@@ -60,10 +58,14 @@
                    class="nav-link {{ request()->routeIs('participants.*') ? 'underline underline-offset-4' : '' }}">
                     Participants
                 </a>
-                <a href="{{ route('outcomes.index') }}" 
-                   class="nav-link {{ request()->routeIs('outcomes.*') ? 'underline underline-offset-4' : '' }}">
-                    Outcomes
-                </a>
+
+                @php $firstProject = \App\Models\Project::first(); @endphp
+                @if($firstProject)
+                    <a href="{{ route('projects.outcomes.index', $firstProject->project_id) }}" 
+                       class="nav-link {{ request()->routeIs('projects.outcomes.*') ? 'underline underline-offset-4' : '' }}">
+                        Outcomes
+                    </a>
+                @endif
             </div>
         </div>
     </nav>
@@ -80,9 +82,8 @@
         </div>
     </footer>
 
-    <!-- Global Scripts -->
     <script>
-        // Setup CSRF for all fetch requests
+        // CSRF token for JS fetch requests
         function getCsrfToken() {
             return document.querySelector('meta[name="csrf-token"]').getAttribute('content');
         }
