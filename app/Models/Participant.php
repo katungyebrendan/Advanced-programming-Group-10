@@ -1,9 +1,11 @@
 <?php
 
+// app/Models/Participant.php
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 class Participant extends Model
 {
@@ -29,10 +31,12 @@ class Participant extends Model
     const INSTITUTIONS = ['SCIT', 'CEDAT', 'UniPod', 'UIRI', 'Lwera'];
 
     // Relationships
-    public function projects()
+     public function projects(): BelongsToMany
     {
         return $this->belongsToMany(Project::class, 'project_participants', 'participant_id', 'project_id')
-                    ->withPivot('role_on_project', 'skill_role');
+                     //->using(ProjectParticipant::class) // Add this line
+                    ->withPivot('role_on_project', 'skill_role')
+                    ->withTimestamps();
     }
 
     public function projectParticipants()
@@ -40,6 +44,7 @@ class Participant extends Model
         return $this->hasMany(ProjectParticipant::class, 'participant_id');
     }
 
+   
     // 🔹 Query scopes
     public function scopeByAffiliation(Builder $query, ?string $affiliation): Builder
     {
@@ -69,6 +74,14 @@ class Participant extends Model
         });
     }
 
+    // Add scope to filter by project
+    public function scopeByProject(Builder $query, ?int $projectId): Builder
+    {
+        return $projectId ? $query->whereHas('projects', function ($q) use ($projectId) {
+            $q->where('project_id', $projectId);
+        }) : $query;
+    }
+
     // 🔹 Business logic methods
     public function canBeDeleted(): bool
     {
@@ -96,16 +109,13 @@ class Participant extends Model
 
     public function getProjectRoles(): array
     {
-        return $this->projectParticipants()
-                    ->with('project')
-                    ->get()
-                    ->map(function ($participation) {
-                        return [
-                            'project_title' => $participation->project->title,
-                            'role' => $participation->role_on_project,
-                            'skill_role' => $participation->skill_role,
-                        ];
-                    })->toArray();
+        return $this->projects->map(function ($project) {
+            return [
+                'project_title' => $project->title ?? $project->name,
+                'role' => $project->pivot->role_on_project,
+                'skill_role' => $project->pivot->skill_role,
+            ];
+        })->toArray();
     }
 
     public function canTakeOnMoreProjects(int $maxProjects = 3): bool
@@ -130,5 +140,29 @@ class Participant extends Model
             $skills[] = 'Cross-skilled';
         }
         return implode(', ', $skills);
+    }
+
+    // New method to add participant to project with role details
+    public function assignToProject(int $projectId, ?string $role = null, ?string $skillRole = null): void
+    {
+        $this->projects()->attach($projectId, [
+            'role_on_project' => $role,
+            'skill_role' => $skillRole
+        ]);
+    }
+
+    // New method to update project assignment
+    public function updateProjectAssignment(int $projectId, ?string $role = null, ?string $skillRole = null): void
+    {
+        $this->projects()->updateExistingPivot($projectId, [
+            'role_on_project' => $role,
+            'skill_role' => $skillRole
+        ]);
+    }
+
+    // New method to remove from project
+    public function removeFromProject(int $projectId): void
+    {
+        $this->projects()->detach($projectId);
     }
 }

@@ -46,3 +46,9 @@ Route::delete('outcomes/{outcome}', [OutcomeController::class, 'destroy'])->name
 // Custom routes
 Route::get('facilities/{facility}/services', [ServiceController::class, 'byFacility'])->name('facilities.services');
 Route::get('participants/{participant}/projects', [ParticipantController::class, 'projects'])->name('participants.projects');
+// routes participants - projects
+Route::resource('participants', ParticipantController::class);
+Route::get('participants/{participant}/projects', [ParticipantController::class, 'manageProjects'])
+    ->name('participants.manage-projects');
+Route::put('participants/{participant}/projects', [ParticipantController::class, 'updateProjects'])
+    ->name('participants.update-projects');

@@ -4,7 +4,6 @@
 <div class="container mx-auto p-6">
     <h1 class="text-2xl font-bold mb-4">Participants</h1>
 
-    {{-- Link to the participant creation page --}}
     <a href="{{ route('participants.create') }}" class="bg-blue-600 text-white px-4 py-2 rounded mb-4 inline-block">+ Add Participant</a>
 
     @if (session('success'))
@@ -29,6 +28,7 @@
                 <th class="border px-4 py-2">Specialization</th>
                 <th class="border px-4 py-2">Cross-Skilled</th>
                 <th class="border px-4 py-2">Institution</th>
+                <th class="border px-4 py-2">Projects</th>
                 <th class="border px-4 py-2">Actions</th>
             </tr>
         </thead>
@@ -48,30 +48,29 @@
                         @endif
                     </td>
                     <td class="border px-4 py-2">{{ $participant->institution }}</td>
+                    <td class="border px-4 py-2 text-center">{{ $participant->projects_count }}</td>
                     <td class="border px-4 py-2 space-x-2">
-                        {{-- View, Edit, Delete, and Projects links --}}
                         <a href="{{ route('participants.show', $participant->participant_id) }}" class="text-blue-600 hover:text-blue-800">View</a>
                         <a href="{{ route('participants.edit', $participant->participant_id) }}" class="text-yellow-600 hover:text-yellow-800">Edit</a>
                         
-                        {{-- Delete form --}}
                         <form action="{{ route('participants.destroy', $participant->participant_id) }}" method="POST" class="inline-block" onsubmit="return confirm('Are you sure you want to delete this participant?');">
                             @csrf
                             @method('DELETE')
                             <button type="submit" class="text-red-600 hover:text-red-800">Delete</button>
                         </form>
                         
-                        <a href="{{ route('participants.projects', $participant->participant_id) }}" class="text-indigo-600 hover:text-indigo-800">Projects</a>
+                        <a href="{{ route('participants.manage-projects', $participant->participant_id) }}" class="text-indigo-600 hover:text-indigo-800">Projects</a>
                     </td>
                 </tr>
             @empty
                 <tr>
-                    <td colspan="8" class="text-center text-gray-500 py-4">No participants found.</td>
+                    <td colspan="9" class="text-center text-gray-500 py-4">No participants found.</td>
                 </tr>
             @endforelse
         </tbody>
     </table>
 
-    {{-- Pagination Links --}}
+    {{-- PAGINATION - Only works if you use paginate() in controller --}}
     @if($participants->hasPages())
         <div class="mt-4">
             {{ $participants->links() }}

@@ -18,11 +18,7 @@ return new class extends Migration
             $table->boolean('cross_skill_trained')->default(false);
             $table->enum('institution', ['SCIT', 'CEDAT', 'UniPod', 'UIRI', 'Lwera']);
 
-            // Foreign key to projects
-            $table->unsignedBigInteger('project_id')->nullable();
-            $table->foreign('project_id')
-                  ->references('project_id')->on('projects')
-                  ->onDelete('cascade');
+            
 
             $table->timestamps();
         });

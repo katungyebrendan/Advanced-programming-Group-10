@@ -1,19 +1,17 @@
-<?php
-
+// app/Models/ProjectParticipant.php
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Relations\Pivot;
 
-class ProjectParticipant extends Model
+class ProjectParticipant extends Pivot
 {
     protected $table = 'project_participants';
-    public $incrementing = false;
-    protected $primaryKey = ['project_id', 'participant_id'];
+
+    // Remove the composite primary key - pivot tables should use auto-increment ID
+    // public $incrementing = false;
+    // protected $primaryKey = ['project_id', 'participant_id'];
 
     protected $fillable = [
-        'project_id',
-        'participant_id',
         'role_on_project',
         'skill_role',
     ];
@@ -34,37 +32,37 @@ class ProjectParticipant extends Model
     }
 
     // 🔹 Query scopes
-    public function scopeByProject(Builder $query, ?int $projectId): Builder
+    public function scopeByProject($query, $projectId)
     {
         return $projectId ? $query->where('project_id', $projectId) : $query;
     }
 
-    public function scopeByParticipant(Builder $query, ?int $participantId): Builder
+    public function scopeByParticipant($query, $participantId)
     {
         return $participantId ? $query->where('participant_id', $participantId) : $query;
     }
 
-    public function scopeByRole(Builder $query, ?string $role): Builder
+    public function scopeByRole($query, $role)
     {
         return $role ? $query->where('role_on_project', $role) : $query;
     }
 
-    public function scopeBySkillRole(Builder $query, ?string $skillRole): Builder
+    public function scopeBySkillRole($query, $skillRole)
     {
         return $skillRole ? $query->where('skill_role', $skillRole) : $query;
     }
 
-    public function scopeStudents(Builder $query): Builder
+    public function scopeStudents($query)
     {
         return $query->where('role_on_project', 'Student');
     }
 
-    public function scopeLecturers(Builder $query): Builder
+    public function scopeLecturers($query)
     {
         return $query->where('role_on_project', 'Lecturer');
     }
 
-    public function scopeContributors(Builder $query): Builder
+    public function scopeContributors($query)
     {
         return $query->where('role_on_project', 'Contributor');
     }
@@ -88,7 +86,7 @@ class ProjectParticipant extends Model
     {
         // Ensure project has at least one lecturer after removal
         if ($this->role_on_project === 'Lecturer') {
-            $lecturerCount = ProjectParticipant::byProject($this->project_id)
+            $lecturerCount = static::byProject($this->project_id)
                 ->lecturers()
                 ->where('participant_id', '!=', $this->participant_id)
                 ->count();
@@ -97,7 +95,7 @@ class ProjectParticipant extends Model
 
         // Ensure project has at least one business lead if this is the only one
         if ($this->skill_role === 'Business Lead') {
-            $businessLeadCount = ProjectParticipant::byProject($this->project_id)
+            $businessLeadCount = static::byProject($this->project_id)
                 ->bySkillRole('Business Lead')
                 ->where('participant_id', '!=', $this->participant_id)
                 ->count();

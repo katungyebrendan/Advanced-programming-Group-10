@@ -3,122 +3,232 @@
 namespace App\Http\Controllers;
 
 use App\Models\Participant;
+use App\Models\Project;
 use Illuminate\Http\Request;
-use Illuminate\Http\RedirectResponse;
-use Illuminate\View\View;
+use Illuminate\Support\Facades\DB;
 
 class ParticipantController extends Controller
 {
-    // List all participants with pagination
-    public function index(): View
+    public function create()
     {
-        $participants = Participant::paginate(10); // Paginate for better performance with many records
-        return view('participants.index', compact('participants'));
-    }
-
-    // Show form to create a new participant
-    public function create(): View
-    {
-        return view('participants.create', [
-            'affiliations' => Participant::AFFILIATIONS,
-            'specializations' => Participant::SPECIALIZATIONS,
-            'institutions' => Participant::INSTITUTIONS
-        ]);
-    }
-
-    // Store a new participant
-    public function store(Request $request): RedirectResponse
-{
-    // Validate the incoming data from the form
-    $request->validate([
-        'full_name' => 'required|string|max:255',
-        'email' => 'nullable|email|max:255|unique:participants,email',
-        'affiliation' => 'required|in:' . implode(',', Participant::AFFILIATIONS),
-        'specialization' => 'required|in:' . implode(',', Participant::SPECIALIZATIONS),
-        'cross_skill_trained' => 'sometimes|boolean',
-        'institution' => 'required|in:' . implode(',', Participant::INSTITUTIONS),
-        'description' => 'nullable|string',
-    ]);
-
-    try {
-        // Handle the checkbox input (if not checked, it won't be sent)
-        $request->merge(['cross_skill_trained' => $request->has('cross_skill_trained')]);
+        $projects = Project::all();
+        $affiliations = Participant::AFFILIATIONS;
+        $specializations = Participant::SPECIALIZATIONS;
+        $institutions = Participant::INSTITUTIONS;
         
-        // Create a new participant record using the request data
-        $participant = Participant::create($request->all());
-
-        // Redirect to the participant show page with a success message
-        return redirect()->route('participants.show', $participant)
-                         ->with('success', 'Participant created successfully.');
-    } catch (InvalidArgumentException $e) {
-        // Redirect back with an error message for invalid arguments
-        return back()->withInput()->withErrors(['message' => $e->getMessage()]);
-    } catch (QueryException $e) {
-        // Handle database-related errors
-        return back()->withInput()->withErrors(['message' => 'Database error: Could not create participant.']);
-    } catch (\Exception $e) {
-        // Handle any other unexpected errors
-        return back()->withInput()->withErrors(['message' => 'Failed to create participant. Please try again.']);
+        return view('participants.create', compact('projects', 'affiliations', 'specializations', 'institutions'));
     }
+public function index()
+{
+    // Change from get() to paginate()
+    $participants = Participant::withCount('projects')->paginate(10); // 10 items per page
+    
+    return view('participants.index', compact('participants'));
 }
-    // Show a single participant using route model binding
-    public function show(Participant $participant): View
-    {
-        return view('participants.show', compact('participant'));
-    }
 
-    // Show form to edit a participant using route model binding
-    public function edit(Participant $participant): View
+public function show(Participant $participant)
+{
+    $participant->load('projects');
+    return view('participants.show', compact('participant'));
+}
+    public function store(Request $request)
     {
-        return view('participants.edit', [
-            'participant' => $participant,
-            'affiliations' => Participant::AFFILIATIONS,
-            'specializations' => Participant::SPECIALIZATIONS,
-            'institutions' => Participant::INSTITUTIONS
-        ]);
-    }
-
-    // Update a participant using route model binding
-    public function update(Request $request, Participant $participant): RedirectResponse
-    {
-        $validated = $request->validate([
+        $request->validate([
             'full_name' => 'required|string|max:255',
-            'email' => 'nullable|email|max:255|unique:participants,email,' . $participant->id,
+            'email' => 'nullable|email|unique:participants,email',
             'affiliation' => 'required|in:' . implode(',', Participant::AFFILIATIONS),
             'specialization' => 'required|in:' . implode(',', Participant::SPECIALIZATIONS),
-            'cross_skill_trained' => 'sometimes|boolean',
-            'institution' => 'required|in:' . implode(',', Participant::INSTITUTIONS),
             'description' => 'nullable|string',
+            'cross_skill_trained' => 'boolean',
+            'institution' => 'required|in:' . implode(',', Participant::INSTITUTIONS),
+            'projects' => 'sometimes|array',
+            'projects.*' => 'exists:projects,project_id',
+            'roles' => 'sometimes|array',
+            'skill_roles' => 'sometimes|array',
+            'roles.*' => 'nullable|string|max:255',
+            'skill_roles.*' => 'nullable|string|max:255'
         ]);
 
-        $validated['cross_skill_trained'] = $request->boolean('cross_skill_trained');
+        DB::beginTransaction();
 
-        $participant->update($validated);
+        try {
+            // Create the participant
+            $participant = Participant::create([
+                'full_name' => $request->full_name,
+                'email' => $request->email,
+                'affiliation' => $request->affiliation,
+                'specialization' => $request->specialization,
+                'description' => $request->description,
+                'cross_skill_trained' => $request->boolean('cross_skill_trained'),
+                'institution' => $request->institution,
+            ]);
 
-        return redirect()->route('participants.show', $participant)
-                        ->with('success', 'Participant updated successfully.');
+            // Attach projects with pivot data if provided
+            if ($request->has('projects')) {
+                $projectsData = [];
+                foreach ($request->projects as $projectId) {
+                    $projectsData[$projectId] = [
+                        'role_on_project' => $request->roles[$projectId] ?? null,
+                        'skill_role' => $request->skill_roles[$projectId] ?? null
+                    ];
+                }
+                $participant->projects()->attach($projectsData);
+            }
+
+            DB::commit();
+
+            return redirect()->route('participants.index')
+                ->with('success', 'Participant created successfully.');
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return back()->with('error', 'Failed to create participant: ' . $e->getMessage());
+        }
     }
 
-    // Delete a participant using route model binding
-    public function destroy(Participant $participant): RedirectResponse
+    public function edit(Participant $participant)
+    {
+        $projects = Project::all();
+        $affiliations = Participant::AFFILIATIONS;
+        $specializations = Participant::SPECIALIZATIONS;
+        $institutions = Participant::INSTITUTIONS;
+        
+        // Load participant with projects to get current assignments
+        $participant->load('projects');
+
+        return view('participants.edit', compact('participant', 'projects', 'affiliations', 'specializations', 'institutions'));
+    }
+
+    public function update(Request $request, Participant $participant)
+    {
+        $request->validate([
+            'full_name' => 'required|string|max:255',
+            'email' => 'nullable|email|unique:participants,email,' . $participant->participant_id . ',participant_id',
+            'affiliation' => 'required|in:' . implode(',', Participant::AFFILIATIONS),
+            'specialization' => 'required|in:' . implode(',', Participant::SPECIALIZATIONS),
+            'description' => 'nullable|string',
+            'cross_skill_trained' => 'boolean',
+            'institution' => 'required|in:' . implode(',', Participant::INSTITUTIONS),
+            'projects' => 'sometimes|array',
+            'projects.*' => 'exists:projects,project_id',
+            'roles' => 'sometimes|array',
+            'skill_roles' => 'sometimes|array',
+            'roles.*' => 'nullable|string|max:255',
+            'skill_roles.*' => 'nullable|string|max:255'
+        ]);
+
+        DB::beginTransaction();
+
+        try {
+            // Update participant details
+            $participant->update([
+                'full_name' => $request->full_name,
+                'email' => $request->email,
+                'affiliation' => $request->affiliation,
+                'specialization' => $request->specialization,
+                'description' => $request->description,
+                'cross_skill_trained' => $request->boolean('cross_skill_trained'),
+                'institution' => $request->institution,
+            ]);
+
+            // Sync projects with pivot data
+            if ($request->has('projects')) {
+                $projectsData = [];
+                foreach ($request->projects as $projectId) {
+                    $projectsData[$projectId] = [
+                        'role_on_project' => $request->roles[$projectId] ?? null,
+                        'skill_role' => $request->skill_roles[$projectId] ?? null
+                    ];
+                }
+                $participant->projects()->sync($projectsData);
+            } else {
+                // If no projects selected, detach all
+                $participant->projects()->detach();
+            }
+
+            DB::commit();
+
+            return redirect()->route('participants.index')
+                ->with('success', 'Participant updated successfully.');
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return back()->with('error', 'Failed to update participant: ' . $e->getMessage());
+        }
+    }
+
+    public function destroy(Participant $participant)
     {
         if (!$participant->canBeDeleted()) {
             return redirect()->route('participants.index')
-                            ->with('error', $participant->getDeletionBlockReason());
+                ->with('error', $participant->getDeletionBlockReason());
         }
 
-        $participant->delete();
+        DB::beginTransaction();
 
-        return redirect()->route('participants.index')
-                        ->with('success', 'Participant deleted successfully.');
+        try {
+            // Detach all projects first
+            $participant->projects()->detach();
+            
+            // Then delete the participant
+            $participant->delete();
+
+            DB::commit();
+
+            return redirect()->route('participants.index')
+                ->with('success', 'Participant deleted successfully.');
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return redirect()->route('participants.index')
+                ->with('error', 'Failed to delete participant: ' . $e->getMessage());
+        }
     }
 
-    // Show projects related to a participant using route model binding
-    public function projects(Participant $participant): View
+    // Additional method to manage project assignments
+    public function manageProjects(Participant $participant)
     {
-        // Eager load projects for better performance
+        $projects = Project::all();
         $participant->load('projects');
         
-        return view('participants.projects', compact('participant'));
+        return view('participants.manage-projects', compact('participant', 'projects'));
+    }
+
+    public function updateProjects(Request $request, Participant $participant)
+    {
+        $request->validate([
+            'projects' => 'sometimes|array',
+            'projects.*' => 'exists:projects,project_id',
+            'roles' => 'sometimes|array',
+            'skill_roles' => 'sometimes|array',
+            'roles.*' => 'nullable|string|max:255',
+            'skill_roles.*' => 'nullable|string|max:255'
+        ]);
+
+        DB::beginTransaction();
+
+        try {
+            if ($request->has('projects')) {
+                $projectsData = [];
+                foreach ($request->projects as $projectId) {
+                    $projectsData[$projectId] = [
+                        'role_on_project' => $request->roles[$projectId] ?? null,
+                        'skill_role' => $request->skill_roles[$projectId] ?? null
+                    ];
+                }
+                $participant->projects()->sync($projectsData);
+            } else {
+                $participant->projects()->detach();
+            }
+
+            DB::commit();
+
+            return redirect()->route('participants.show', $participant)
+                ->with('success', 'Project assignments updated successfully.');
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return back()->with('error', 'Failed to update project assignments: ' . $e->getMessage());
+        }
     }
 }

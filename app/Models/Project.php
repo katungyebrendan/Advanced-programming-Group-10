@@ -4,6 +4,9 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 class Project extends Model
 {
@@ -38,24 +41,38 @@ class Project extends Model
     ];
 
     // Relationships
-    public function program()
+    public function program(): BelongsTo
     {
         return $this->belongsTo(Program::class, 'program_id', 'program_id');
     }
 
-    public function facility()
+    public function facility(): BelongsTo
     {
         return $this->belongsTo(Facility::class, 'facility_id', 'facility_id');
     }
 
-    public function participants()
-    {
-        return $this->hasMany(Participant::class, 'project_id');
-    }
+    // REMOVE this conflicting relationship - use participants() many-to-many instead
+    // public function participants()
+    // {
+    //     return $this->hasMany(Participant::class, 'project_id');
+    // }
 
-    public function outcomes()
+    public function outcomes(): HasMany
     {
         return $this->hasMany(Outcome::class, 'project_id');
+    }
+
+    // CORRECTED many-to-many relationship with participants
+    public function participants(): BelongsToMany
+    {
+        return $this->belongsToMany(
+            Participant::class,
+            'project_participants',
+            'project_id',
+            'participant_id'
+        ) //->using(ProjectParticipant::class) // Add this if you have the pivot model
+         ->withPivot('role_on_project', 'skill_role')
+         ->withTimestamps();
     }
 
     // Query scopes
@@ -93,6 +110,14 @@ class Project extends Model
         });
     }
 
+    // Add scope to filter by participant
+    public function scopeByParticipant(Builder $query, int $participantId): Builder
+    {
+        return $query->whereHas('participants', function ($q) use ($participantId) {
+            $q->where('participant_id', $participantId);
+        });
+    }
+
     // Utility methods
     public function canBeDeleted(): bool
     {
@@ -105,38 +130,84 @@ class Project extends Model
         $reasons = [];
         
         if ($this->participants()->count() > 0) {
-            $reasons[] = 'has participants';
+            $reasons[] = 'has participants assigned';
         }
         
         if ($this->outcomes()->count() > 0) {
-            $reasons[] = 'has outcomes';
+            $reasons[] = 'has outcomes recorded';
         }
 
         if (empty($reasons)) {
-            return 'Unknown reason';
+            return 'Project can be deleted';
         }
 
         return 'Project cannot be deleted because it ' . implode(' and ', $reasons) . '.';
     }
 
-    public function participant()
-{
-    return $this->belongsToMany(
-        Participant::class,
-        'project_participants',
-        'project_id',
-        'participant_id'
-    )->withPivot('role_on_project', 'skill_role')
-     ->withTimestamps();
-}
-
     public function getProgressPercentage(): int
     {
-        $stages = ['Concept', 'Prototype', 'MVP', 'Market Launch'];
+        $stages = self::PROTOTYPE_STAGES;
         $currentIndex = array_search($this->prototype_stage, $stages);
         
         if ($currentIndex === false) return 0;
         
         return (int) (($currentIndex + 1) / count($stages) * 100);
+    }
+
+    // New methods for managing participants
+    public function addParticipant(Participant $participant, ?string $role = null, ?string $skillRole = null): void
+    {
+        $this->participants()->attach($participant->participant_id, [
+            'role_on_project' => $role,
+            'skill_role' => $skillRole
+        ]);
+    }
+
+    public function removeParticipant(Participant $participant): void
+    {
+        $this->participants()->detach($participant->participant_id);
+    }
+
+    public function updateParticipantRole(Participant $participant, ?string $role = null, ?string $skillRole = null): void
+    {
+        $this->participants()->updateExistingPivot($participant->participant_id, [
+            'role_on_project' => $role,
+            'skill_role' => $skillRole
+        ]);
+    }
+
+    public function getParticipantCount(): int
+    {
+        return $this->participants()->count();
+    }
+
+    public function hasParticipant(Participant $participant): bool
+    {
+        return $this->participants()->where('participant_id', $participant->participant_id)->exists();
+    }
+
+    public function getParticipantsByRole(string $role): \Illuminate\Database\Eloquent\Collection
+    {
+        return $this->participants()->wherePivot('role_on_project', $role)->get();
+    }
+
+    public function getLecturers(): \Illuminate\Database\Eloquent\Collection
+    {
+        return $this->getParticipantsByRole('Lecturer');
+    }
+
+    public function getStudents(): \Illuminate\Database\Eloquent\Collection
+    {
+        return $this->getParticipantsByRole('Student');
+    }
+
+    public function hasLecturer(): bool
+    {
+        return $this->getLecturers()->count() > 0;
+    }
+
+    public function canAddMoreParticipants(int $max = 10): bool
+    {
+        return $this->getParticipantCount() < $max;
     }
 }
