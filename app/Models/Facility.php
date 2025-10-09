@@ -66,14 +66,56 @@ class Facility extends Model
     // 🔹 Safeguard methods
     public function canBeDeleted(): bool
     {
-        return $this->projects()->count() === 0;
+        // Deletion Constraints Rule - check Services, Equipment, and Projects
+        return $this->services()->count() === 0 && 
+               $this->equipment()->count() === 0 && 
+               $this->projects()->count() === 0;
     }
 
     public function getDeletionBlockReason(): string
     {
-        if ($this->projects()->count() > 0) {
-            return 'Facility cannot be deleted because it has active projects.';
+        $reasons = [];
+        
+        if ($this->services()->count() > 0) {
+            $reasons[] = 'Services';
         }
-        return 'Unknown reason';
+        if ($this->equipment()->count() > 0) {
+            $reasons[] = 'Equipment';
+        }
+        if ($this->projects()->count() > 0) {
+            $reasons[] = 'Projects';
+        }
+        
+        if (empty($reasons)) {
+            return 'Facility can be deleted.';
+        }
+        
+        return 'Facility has dependent records (' . implode('/', $reasons) . ').';
+    }
+
+    // 🔹 Business Rules Enforcement
+    protected static function boot()
+    {
+        parent::boot();
+        
+        // Deletion Constraints Rule
+        static::deleting(function ($facility) {
+            if (!$facility->canBeDeleted()) {
+                throw new \Exception($facility->getDeletionBlockReason());
+            }
+        });
+    }
+
+    // Capabilities validation
+    public function hasRequiredCapabilities(): bool
+    {
+        $hasServices = $this->services()->count() > 0;
+        $hasEquipment = $this->equipment()->count() > 0;
+        
+        if ($hasServices || $hasEquipment) {
+            return !empty($this->capabilities) && count($this->capabilities) > 0;
+        }
+        
+        return true; // No requirement if no services or equipment
     }
 }

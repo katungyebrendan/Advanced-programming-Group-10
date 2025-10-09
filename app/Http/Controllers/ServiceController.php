@@ -7,6 +7,8 @@ use App\Models\Facility;
 use Illuminate\Http\Request;
 use Illuminate\Http\RedirectResponse;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\CreateServiceRequest;
+use App\Http\Requests\UpdateServiceRequest;
 use Illuminate\View\View;
 
 class ServiceController extends Controller
@@ -29,19 +31,16 @@ class ServiceController extends Controller
     }
 
     // Store a new service
-    public function store(Request $request): RedirectResponse
+    public function store(CreateServiceRequest $request): RedirectResponse
     {
-        $validated = $request->validate([
-            'facility_id' => 'required|exists:facilities,facility_id',
-            'name' => 'required|string|max:255|unique:services,name',
-            'description' => 'nullable|string',
-            'category' => 'required|in:' . implode(',', Service::CATEGORIES),
-            'skill_type' => 'required|in:' . implode(',', Service::SKILL_TYPES),
-        ]);
+        try {
+            $validated = $request->validated();
+            Service::create($validated);
 
-        Service::create($validated);
-
-        return redirect()->route('services.index')->with('success', 'Service created successfully.');
+            return redirect()->route('services.index')->with('success', 'Service created successfully.');
+        } catch (\Exception $e) {
+            return back()->with('error', 'An error occurred while creating the service: ' . $e->getMessage())->withInput();
+        }
     }
 
     // Show a single service
@@ -63,36 +62,37 @@ class ServiceController extends Controller
     }
 
     // Update a service
-    public function update(Request $request, $id): RedirectResponse
+    public function update(UpdateServiceRequest $request, $id): RedirectResponse
     {
-        $service = Service::findOrFail($id);
-        
-        $validated = $request->validate([
-            'facility_id' => 'required|exists:facilities,facility_id',
-            'name' => 'required|string|max:255|unique:services,name,' . $service->service_id . ',service_id',
-            'description' => 'nullable|string',
-            'category' => 'required|in:' . implode(',', Service::CATEGORIES),
-            'skill_type' => 'required|in:' . implode(',', Service::SKILL_TYPES),
-        ]);
+        try {
+            $service = Service::findOrFail($id);
+            $validated = $request->validated();
+            $service->update($validated);
 
-        $service->update($validated);
-
-        return redirect()->route('services.index')->with('success', 'Service updated successfully.');
+            return redirect()->route('services.index')->with('success', 'Service updated successfully.');
+        } catch (\Exception $e) {
+            return back()->with('error', 'An error occurred while updating the service: ' . $e->getMessage())->withInput();
+        }
     }
 
     // Delete a service
     public function destroy($id): RedirectResponse
     {
-        $service = Service::findOrFail($id);
-        
-        if (!$service->canBeDeleted()) {
+        try {
+            $service = Service::findOrFail($id);
+            
+            if (!$service->canBeDeleted()) {
+                return redirect()->route('services.index')
+                                 ->with('error', $service->getDeletionBlockReason());
+            }
+
+            $service->delete();
+
+            return redirect()->route('services.index')->with('success', 'Service deleted successfully.');
+        } catch (\Exception $e) {
             return redirect()->route('services.index')
-                             ->with('error', $service->getDeletionBlockReason());
+                             ->with('error', 'An error occurred while deleting the service: ' . $e->getMessage());
         }
-
-        $service->delete();
-
-        return redirect()->route('services.index')->with('success', 'Service deleted successfully.');
     }
 
     // Optional: list services by facility

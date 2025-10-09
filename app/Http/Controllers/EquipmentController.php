@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use App\Models\Equipment;
 use App\Models\Facility;
 use Illuminate\Http\Request;
+use App\Http\Requests\CreateEquipmentRequest;
+use App\Http\Requests\UpdateEquipmentRequest;
 
 class EquipmentController extends Controller
 {
@@ -34,22 +36,17 @@ class EquipmentController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
+    public function store(CreateEquipmentRequest $request)
     {
-        $validated = $request->validate([
-            'facility_id' => 'required|exists:facilities,facility_id',
-            'name' => 'required|string|max:255',
-            'capabilities' => 'nullable|string',
-            'description' => 'nullable|string',
-            'inventory_code' => 'nullable|string|max:100',
-            'usage_domain' => 'nullable|string|max:100',
-            'support_phase' => 'nullable|string|max:100',
-        ]);
+        try {
+            $validated = $request->validated();
+            Equipment::create($validated);
 
-        Equipment::create($validated);
-
-        return redirect()->route('equipment.index')
-                         ->with('success', 'Equipment created successfully.');
+            return redirect()->route('equipment.index')
+                             ->with('success', 'Equipment created successfully.');
+        } catch (\Exception $e) {
+            return back()->with('error', 'An error occurred while creating the equipment: ' . $e->getMessage())->withInput();
+        }
     }
 
     /**
@@ -75,22 +72,17 @@ class EquipmentController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, Equipment $equipment)
+    public function update(UpdateEquipmentRequest $request, Equipment $equipment)
     {
-        $validated = $request->validate([
-            'facility_id' => 'required|exists:facilities,facility_id',
-            'name' => 'required|string|max:255',
-            'capabilities' => 'nullable|string',
-            'description' => 'nullable|string',
-            'inventory_code' => 'nullable|string|max:100',
-            'usage_domain' => 'nullable|string|max:100',
-            'support_phase' => 'nullable|string|max:100',
-        ]);
+        try {
+            $validated = $request->validated();
+            $equipment->update($validated);
 
-        $equipment->update($validated);
-
-        return redirect()->route('equipment.index')
-                         ->with('success', 'Equipment updated successfully.');
+            return redirect()->route('equipment.index')
+                             ->with('success', 'Equipment updated successfully.');
+        } catch (\Exception $e) {
+            return back()->with('error', 'An error occurred while updating the equipment: ' . $e->getMessage())->withInput();
+        }
     }
 
     /**
@@ -98,9 +90,19 @@ class EquipmentController extends Controller
      */
     public function destroy(Equipment $equipment)
     {
-        $equipment->delete();
+        try {
+            if (!$equipment->canBeDeleted()) {
+                return redirect()->route('equipment.index')
+                               ->with('error', $equipment->getDeletionBlockReason());
+            }
 
-        return redirect()->route('equipment.index')
-                         ->with('success', 'Equipment deleted successfully.');
+            $equipment->delete();
+
+            return redirect()->route('equipment.index')
+                             ->with('success', 'Equipment deleted successfully.');
+        } catch (\Exception $e) {
+            return redirect()->route('equipment.index')
+                           ->with('error', 'An error occurred while deleting the equipment: ' . $e->getMessage());
+        }
     }
 }

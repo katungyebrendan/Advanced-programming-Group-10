@@ -1,0 +1,138 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8"/>
+        <title>Test Documentation</title>
+        <style>
+            body {
+                text-rendering: optimizeLegibility;
+                font-family: Source SansSerif Pro, Arial, sans-serif;
+                font-variant-ligatures: common-ligatures;
+                font-kerning: normal;
+                margin-left: 2rem;
+                background-color: #fff;
+                color: #000;
+            }
+
+            body > ul > li {
+                font-size: larger;
+            }
+
+            h2 {
+                font-size: larger;
+                text-decoration-line: underline;
+                text-decoration-thickness: 2px;
+                margin: 0;
+                padding: 0.5rem 0;
+            }
+
+            ul {
+                list-style: none;
+                margin: 0 0 2rem;
+                padding: 0 0 0 1rem;
+                text-indent: -1rem;
+            }
+
+            .success:before {
+                color: #4e9a06;
+                content: '✓';
+                padding-right: 0.5rem;
+            }
+
+            .defect {
+                color: #a40000;
+            }
+
+            .defect:before {
+                color: #a40000;
+                content: '✗';
+                padding-right: 0.5rem;
+            }
+        </style>
+    </head>
+    <body>
+        <h2>Equipment Entity (Tests\Unit\Domain\EquipmentEntity)</h2>
+        <ul>
+            <li class="success">Equipment with valid data passes validation</li>
+            <li class="success">Equipment with missing facility id fails validation</li>
+            <li class="success">Equipment with missing name fails validation</li>
+            <li class="success">Equipment with missing inventory code fails validation</li>
+            <li class="success">Electronics equipment with training only support phase fails validation</li>
+            <li class="success">Electronics equipment with prototyping support phase passes validation</li>
+            <li class="success">Electronics equipment with testing support phase passes validation</li>
+            <li class="success">Electronics equipment with prototyping and testing support phases passes validation</li>
+            <li class="success">Electronics equipment with prototyping and training support phases passes validation</li>
+            <li class="success">Non electronics equipment with training only passes validation</li>
+        </ul>
+        <h2>Facility Domain Service (Tests\Unit\Domain\FacilityDomainService)</h2>
+        <ul>
+            <li class="success">Create facility with valid data succeeds</li>
+            <li class="success">Create facility with missing name fails</li>
+            <li class="success">Create facility with missing location fails</li>
+            <li class="success">Create facility with missing facility type fails</li>
+            <li class="success">Create facility with duplicate name and location fails</li>
+            <li class="success">Create facility with same name different location succeeds</li>
+            <li class="success">Update facility without capabilities when has services fails</li>
+            <li class="success">Update facility without capabilities when has equipment fails</li>
+            <li class="success">Delete facility with services fails</li>
+            <li class="success">Delete facility with equipment fails</li>
+            <li class="success">Delete facility with projects fails</li>
+            <li class="success">Delete facility with multiple dependencies fails</li>
+            <li class="success">Delete facility without dependencies succeeds</li>
+        </ul>
+        <h2>Participant Domain Service (Tests\Unit\Domain\ParticipantDomainService)</h2>
+        <ul>
+            <li class="success">Create participant with valid data succeeds</li>
+            <li class="success">Create participant with missing full name fails</li>
+            <li class="success">Create participant with missing email fails</li>
+            <li class="success">Create participant with invalid email fails</li>
+            <li class="success">Create participant with missing affiliation fails</li>
+            <li class="success">Create participant with invalid affiliation fails</li>
+            <li class="success">Create participant with duplicate email fails</li>
+            <li class="success">Create participant with duplicate email case insensitive fails</li>
+            <li class="success">Create participant cross skill trained without specialization fails</li>
+            <li class="success">Create participant cross skill trained with specialization succeeds</li>
+            <li class="success">Create participant with invalid specialization fails</li>
+            <li class="success">Delete participant with active projects fails</li>
+            <li class="success">Delete participant without active projects succeeds</li>
+        </ul>
+        <h2>Program Domain Service (Tests\Unit\Domain\ProgramDomainService)</h2>
+        <ul>
+            <li class="success">Create program with valid data succeeds</li>
+            <li class="success">Create program with missing name fails</li>
+            <li class="success">Create program with missing description fails</li>
+            <li class="success">Create program with duplicate name fails</li>
+            <li class="success">Create program with duplicate name case insensitive fails</li>
+            <li class="success">Create program with invalid national alignment fails</li>
+            <li class="success">Create program with valid national alignment succeeds</li>
+            <li class="success">Delete program with projects fails</li>
+            <li class="success">Delete program without projects succeeds</li>
+        </ul>
+        <h2>Project Entity (Tests\Unit\Domain\ProjectEntity)</h2>
+        <ul>
+            <li class="success">Project with valid data passes validation</li>
+            <li class="success">Project with missing program id fails validation</li>
+            <li class="success">Project with missing facility id fails validation</li>
+            <li class="success">Project with missing title fails validation</li>
+            <li class="success">Project program scoped unique key combines program id and lowercase title</li>
+            <li class="success">Project can be completed with team members and outcomes</li>
+            <li class="success">Project cannot be completed without team members</li>
+            <li class="success">Project cannot be completed without outcomes</li>
+            <li class="success">Project cannot be completed without team members and outcomes</li>
+            <li class="success">Project with all optional fields passes validation</li>
+        </ul>
+        <h2>Service Entity (Tests\Unit\Domain\ServiceEntity)</h2>
+        <ul>
+            <li class="success">Service with valid data passes validation</li>
+            <li class="success">Service with missing facility id fails validation</li>
+            <li class="success">Service with missing name fails validation</li>
+            <li class="success">Service with missing category fails validation</li>
+            <li class="success">Service with missing skill type fails validation</li>
+            <li class="success">Service with invalid category fails validation</li>
+            <li class="success">Service with invalid skill type fails validation</li>
+            <li class="success">Service scoped unique key combines facility id and lowercase name</li>
+            <li class="success">Service with all valid categories passes validation</li>
+            <li class="success">Service with all valid skill types passes validation</li>
+        </ul>
+    </body>
+</html>

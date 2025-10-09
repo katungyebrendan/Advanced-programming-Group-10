@@ -1,0 +1,77 @@
+Equipment Entity (Tests\Unit\Domain\EquipmentEntity)
+ [x] Equipment with valid data passes validation
+ [x] Equipment with missing facility id fails validation
+ [x] Equipment with missing name fails validation
+ [x] Equipment with missing inventory code fails validation
+ [x] Electronics equipment with training only support phase fails validation
+ [x] Electronics equipment with prototyping support phase passes validation
+ [x] Electronics equipment with testing support phase passes validation
+ [x] Electronics equipment with prototyping and testing support phases passes validation
+ [x] Electronics equipment with prototyping and training support phases passes validation
+ [x] Non electronics equipment with training only passes validation
+
+Facility Domain Service (Tests\Unit\Domain\FacilityDomainService)
+ [x] Create facility with valid data succeeds
+ [x] Create facility with missing name fails
+ [x] Create facility with missing location fails
+ [x] Create facility with missing facility type fails
+ [x] Create facility with duplicate name and location fails
+ [x] Create facility with same name different location succeeds
+ [x] Update facility without capabilities when has services fails
+ [x] Update facility without capabilities when has equipment fails
+ [x] Delete facility with services fails
+ [x] Delete facility with equipment fails
+ [x] Delete facility with projects fails
+ [x] Delete facility with multiple dependencies fails
+ [x] Delete facility without dependencies succeeds
+
+Participant Domain Service (Tests\Unit\Domain\ParticipantDomainService)
+ [x] Create participant with valid data succeeds
+ [x] Create participant with missing full name fails
+ [x] Create participant with missing email fails
+ [x] Create participant with invalid email fails
+ [x] Create participant with missing affiliation fails
+ [x] Create participant with invalid affiliation fails
+ [x] Create participant with duplicate email fails
+ [x] Create participant with duplicate email case insensitive fails
+ [x] Create participant cross skill trained without specialization fails
+ [x] Create participant cross skill trained with specialization succeeds
+ [x] Create participant with invalid specialization fails
+ [x] Delete participant with active projects fails
+ [x] Delete participant without active projects succeeds
+
+Program Domain Service (Tests\Unit\Domain\ProgramDomainService)
+ [x] Create program with valid data succeeds
+ [x] Create program with missing name fails
+ [x] Create program with missing description fails
+ [x] Create program with duplicate name fails
+ [x] Create program with duplicate name case insensitive fails
+ [x] Create program with invalid national alignment fails
+ [x] Create program with valid national alignment succeeds
+ [x] Delete program with projects fails
+ [x] Delete program without projects succeeds
+
+Project Entity (Tests\Unit\Domain\ProjectEntity)
+ [x] Project with valid data passes validation
+ [x] Project with missing program id fails validation
+ [x] Project with missing facility id fails validation
+ [x] Project with missing title fails validation
+ [x] Project program scoped unique key combines program id and lowercase title
+ [x] Project can be completed with team members and outcomes
+ [x] Project cannot be completed without team members
+ [x] Project cannot be completed without outcomes
+ [x] Project cannot be completed without team members and outcomes
+ [x] Project with all optional fields passes validation
+
+Service Entity (Tests\Unit\Domain\ServiceEntity)
+ [x] Service with valid data passes validation
+ [x] Service with missing facility id fails validation
+ [x] Service with missing name fails validation
+ [x] Service with missing category fails validation
+ [x] Service with missing skill type fails validation
+ [x] Service with invalid category fails validation
+ [x] Service with invalid skill type fails validation
+ [x] Service scoped unique key combines facility id and lowercase name
+ [x] Service with all valid categories passes validation
+ [x] Service with all valid skill types passes validation
+

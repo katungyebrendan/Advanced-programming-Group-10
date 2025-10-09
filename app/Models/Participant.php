@@ -6,6 +6,8 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use App\Models\ProjectParticipant;
+use App\Models\Project; // Ensure Project is also imported if used in relationships
 
 class Participant extends Model
 {
@@ -94,7 +96,31 @@ class Participant extends Model
         if ($this->projects()->count() > 0) {
             return 'Participant cannot be deleted because they are assigned to active projects.';
         }
-        return 'Unknown reason';
+        return 'Participant can be deleted.';
+    }
+
+    // 🔹 Business Rules Enforcement
+    protected static function boot()
+    {
+        parent::boot();
+        
+        // Prevent deletion if participant has active projects
+        static::deleting(function ($participant) {
+            if (!$participant->canBeDeleted()) {
+                throw new \Exception('Participant cannot be deleted because they are assigned to active projects.');
+            }
+        });
+    }
+
+    // 🔹 Business Rules Validation Methods
+    
+    // Specialization Requirement Rule validation
+    public function hasValidCrossSkillConfiguration(): bool
+    {
+        if ($this->cross_skill_trained && empty($this->specialization)) {
+            return false;
+        }
+        return true;
     }
 
     public function getActiveProjectsCount(): int

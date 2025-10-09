@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use App\Models\Facility;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\CreateFacilityRequest;
+use App\Http\Requests\UpdateFacilityRequest;
 use InvalidArgumentException;
 
 class FacilityController extends Controller
@@ -31,30 +33,18 @@ class FacilityController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
+    public function store(CreateFacilityRequest $request)
     {
-        // Validate the incoming data from the form
-        $request->validate([
-            'name' => 'required|string|max:255',
-            'location' => 'required|string|max:255',
-            'description' => 'required|string',
-            'partner_organization' => 'nullable|string',
-            'facility_type' => 'required|string',
-            'capabilities' => 'nullable|string',
-        ]);
-
         try {
             // Create a new facility record using the validated data
-            Facility::create($request->all());
+            $data = $request->validated();
+            Facility::create($data);
 
             // Redirect to the facilities list page with a success message
             return redirect()->route('facilities.index')
                              ->with('success', 'Facility created successfully.');
-        } catch (InvalidArgumentException $e) {
-            // Redirect back with an error message
-            return back()->withInput()->withErrors(['message' => $e->getMessage()]);
         } catch (\Exception $e) {
-            return back()->withInput()->withErrors(['message' => 'Failed to create facility']);
+            return back()->withInput()->withErrors(['message' => 'Failed to create facility: ' . $e->getMessage()]);
         }
     }
 
@@ -79,25 +69,17 @@ class FacilityController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, int $id)
+    public function update(UpdateFacilityRequest $request, int $id)
     {
-        $request->validate([
-            'name' => 'required|string|max:255',
-            'location' => 'required|string|max:255',
-            'description' => 'required|string',
-            'partner_organization' => 'nullable|string',
-            'facility_type' => 'required|string',
-            'capabilities' => 'nullable|string',
-        ]);
-
         try {
             $facility = Facility::findOrFail($id);
-            $facility->update($request->all());
+            $data = $request->validated();
+            $facility->update($data);
 
             return redirect()->route('facilities.index')
                              ->with('success', 'Facility updated successfully.');
         } catch (\Exception $e) {
-            return back()->withInput()->withErrors(['message' => 'Failed to update facility']);
+            return back()->withInput()->withErrors(['message' => 'Failed to update facility: ' . $e->getMessage()]);
         }
     }
 
