@@ -6,6 +6,8 @@ use App\Models\Participant;
 use App\Models\Project;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use App\Http\Requests\CreateParticipantRequest;
+use App\Http\Requests\UpdateParticipantRequest;
 
 class ParticipantController extends Controller
 {
@@ -31,16 +33,10 @@ public function show(Participant $participant)
     $participant->load('projects');
     return view('participants.show', compact('participant'));
 }
-    public function store(Request $request)
+    public function store(CreateParticipantRequest $request)
     {
+        // Additional validation for project assignments
         $request->validate([
-            'full_name' => 'required|string|max:255',
-            'email' => 'nullable|email|unique:participants,email',
-            'affiliation' => 'required|in:' . implode(',', Participant::AFFILIATIONS),
-            'specialization' => 'required|in:' . implode(',', Participant::SPECIALIZATIONS),
-            'description' => 'nullable|string',
-            'cross_skill_trained' => 'boolean',
-            'institution' => 'required|in:' . implode(',', Participant::INSTITUTIONS),
             'projects' => 'sometimes|array',
             'projects.*' => 'exists:projects,project_id',
             'roles' => 'sometimes|array',
@@ -52,16 +48,9 @@ public function show(Participant $participant)
         DB::beginTransaction();
 
         try {
-            // Create the participant
-            $participant = Participant::create([
-                'full_name' => $request->full_name,
-                'email' => $request->email,
-                'affiliation' => $request->affiliation,
-                'specialization' => $request->specialization,
-                'description' => $request->description,
-                'cross_skill_trained' => $request->boolean('cross_skill_trained'),
-                'institution' => $request->institution,
-            ]);
+            // Create the participant using validated data
+            $validated = $request->validated();
+            $participant = Participant::create($validated);
 
             // Attach projects with pivot data if provided
             if ($request->has('projects')) {
@@ -99,16 +88,10 @@ public function show(Participant $participant)
         return view('participants.edit', compact('participant', 'projects', 'affiliations', 'specializations', 'institutions'));
     }
 
-    public function update(Request $request, Participant $participant)
+    public function update(UpdateParticipantRequest $request, Participant $participant)
     {
+        // Additional validation for project assignments
         $request->validate([
-            'full_name' => 'required|string|max:255',
-            'email' => 'nullable|email|unique:participants,email,' . $participant->participant_id . ',participant_id',
-            'affiliation' => 'required|in:' . implode(',', Participant::AFFILIATIONS),
-            'specialization' => 'required|in:' . implode(',', Participant::SPECIALIZATIONS),
-            'description' => 'nullable|string',
-            'cross_skill_trained' => 'boolean',
-            'institution' => 'required|in:' . implode(',', Participant::INSTITUTIONS),
             'projects' => 'sometimes|array',
             'projects.*' => 'exists:projects,project_id',
             'roles' => 'sometimes|array',
@@ -120,16 +103,9 @@ public function show(Participant $participant)
         DB::beginTransaction();
 
         try {
-            // Update participant details
-            $participant->update([
-                'full_name' => $request->full_name,
-                'email' => $request->email,
-                'affiliation' => $request->affiliation,
-                'specialization' => $request->specialization,
-                'description' => $request->description,
-                'cross_skill_trained' => $request->boolean('cross_skill_trained'),
-                'institution' => $request->institution,
-            ]);
+            // Update participant details using validated data
+            $validated = $request->validated();
+            $participant->update($validated);
 
             // Sync projects with pivot data
             if ($request->has('projects')) {

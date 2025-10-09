@@ -54,13 +54,39 @@ class Service extends Model
     // Business logic methods
     public function canBeDeleted(): bool
     {
-        // Services can typically be deleted unless they're referenced in active projects
+        // Delete Guard Rule - Services cannot be deleted if any Project at that Facility 
+        // references its Category in TestingRequirements
+        $projects = $this->facility->projects();
+        
+        foreach ($projects as $project) {
+            if (!empty($project->testing_requirements) && 
+                stripos($project->testing_requirements, $this->category) !== false) {
+                return false;
+            }
+        }
+        
         return true;
     }
 
     public function getDeletionBlockReason(): string
     {
-        return 'Service is currently in use and cannot be deleted.';
+        if (!$this->canBeDeleted()) {
+            return 'Service in use by Project testing requirements.';
+        }
+        return 'Service can be deleted.';
+    }
+
+    // 🔹 Business Rules Enforcement
+    protected static function boot()
+    {
+        parent::boot();
+        
+        // Delete Guard Rule
+        static::deleting(function ($service) {
+            if (!$service->canBeDeleted()) {
+                throw new \Exception('Service in use by Project testing requirements.');
+            }
+        });
     }
 
     public function getDisplayName(): string

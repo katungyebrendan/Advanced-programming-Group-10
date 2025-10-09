@@ -144,6 +144,70 @@ class Project extends Model
         return 'Project cannot be deleted because it ' . implode(' and ', $reasons) . '.';
     }
 
+    // 🔹 Business Rules Enforcement
+    protected static function boot()
+    {
+        parent::boot();
+        
+        // Team Tracking Rule validation on save
+        static::saving(function ($project) {
+            // This will be checked in the request validation instead
+            // as we need to handle the many-to-many relationship properly
+        });
+    }
+
+    // 🔹 Business Rules Validation Methods
+    
+    // Team Tracking Rule - Project must have at least one team member
+    public function hasRequiredTeamMembers(): bool
+    {
+        return $this->participants()->count() > 0;
+    }
+
+    // Outcome Validation Rule - If Status is 'Completed', at least one Outcome must be attached
+    public function hasRequiredOutcomes(): bool
+    {
+        if ($this->status !== 'Completed') {
+            return true;
+        }
+        return $this->outcomes()->count() > 0;
+    }
+
+    // Facility Compatibility Rule
+    public function isFacilityCompatible(): bool
+    {
+        if (empty($this->testing_requirements)) {
+            return true; // No requirements to check
+        }
+        
+        $facility = $this->facility;
+        if (!$facility || empty($facility->capabilities)) {
+            return false;
+        }
+        
+        // This is a simplified check - you might want more sophisticated logic
+        // to match testing requirements with facility capabilities
+        return true;
+    }
+
+    // Status transition validation
+    public function canTransitionToStatus(string $newStatus): array
+    {
+        $errors = [];
+        
+        if ($newStatus === 'Completed') {
+            if (!$this->hasRequiredTeamMembers()) {
+                $errors[] = 'Project must have at least one team member assigned.';
+            }
+            
+            if (!$this->hasRequiredOutcomes()) {
+                $errors[] = 'Completed projects must have at least one documented outcome.';
+            }
+        }
+        
+        return $errors;
+    }
+
     public function getProgressPercentage(): int
     {
         $stages = self::PROTOTYPE_STAGES;

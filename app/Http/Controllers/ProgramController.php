@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Models\Program;
 use Illuminate\Http\Request;
+use App\Http\Requests\CreateProgramRequest;
+use App\Http\Requests\UpdateProgramRequest;
 
 class ProgramController extends Controller
 {
@@ -21,18 +23,10 @@ class ProgramController extends Controller
         return view('programs.create', compact('focusOptions', 'phaseOptions'));
     }
 
-    public function store(Request $request)
+    public function store(CreateProgramRequest $request)
     {
         try {
-            $data = $request->validate([
-                'name' => 'required|string|max:255',
-                'description' => 'nullable|string',
-                'national_alignment' => 'nullable|string|max:255',
-                'focus_areas' => 'nullable|array',
-                'focus_areas.*' => 'string|max:150',
-                'phases' => 'nullable|array',
-                'phases.*' => 'string|max:100',
-            ]);
+            $data = $request->validated();
 
             // Ensure arrays are properly handled
             $data['focus_areas'] = $data['focus_areas'] ?? [];
@@ -43,8 +37,6 @@ class ProgramController extends Controller
             return redirect()->route('programs.index')
                            ->with('success', 'Program created successfully!');
 
-        } catch (\Illuminate\Validation\ValidationException $e) {
-            return back()->withErrors($e->errors())->withInput();
         } catch (\Exception $e) {
             return back()->with('error', 'An error occurred while creating the program: ' . $e->getMessage())->withInput();
         }
@@ -63,18 +55,10 @@ class ProgramController extends Controller
         return view('programs.edit', compact('program', 'focusOptions', 'phaseOptions'));
     }
 
-    public function update(Request $request, Program $program)
+    public function update(UpdateProgramRequest $request, Program $program)
     {
         try {
-            $data = $request->validate([
-                'name' => 'required|string|max:255',
-                'description' => 'nullable|string',
-                'national_alignment' => 'nullable|string|max:255',
-                'focus_areas' => 'nullable|array',
-                'focus_areas.*' => 'string|max:150',
-                'phases' => 'nullable|array',
-                'phases.*' => 'string|max:100',
-            ]);
+            $data = $request->validated();
 
             // Ensure arrays are properly handled
             $data['focus_areas'] = $data['focus_areas'] ?? [];
@@ -85,8 +69,6 @@ class ProgramController extends Controller
             return redirect()->route('programs.index')
                            ->with('success', 'Program updated successfully!');
 
-        } catch (\Illuminate\Validation\ValidationException $e) {
-            return back()->withErrors($e->errors())->withInput();
         } catch (\Exception $e) {
             return back()->with('error', 'An error occurred while updating the program: ' . $e->getMessage())->withInput();
         }
