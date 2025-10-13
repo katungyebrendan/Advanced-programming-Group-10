@@ -1,6 +1,6 @@
 # Business Rules Implementation Summary
 
-This document summarizes the comprehensive business rules that have been implemented across your Laravel application.
+This document summarizes the comprehensive business rules that have been implemented across our Laravel application.
 
 ## 🔹 Program Entity Business Rules
 
