@@ -12,7 +12,7 @@
             <select name="facility_id" class="w-full border rounded p-2" required>
                 <option value="">-- Select Facility --</option>
                 @foreach($facilities as $facility)
-                    <option value="{{ $facility->facility_id }}">{{ $facility->name }}</option>
+                    <option value="{{ $facility->id }}">{{ $facility->name }}</option>
                 @endforeach
             </select>
         </div>

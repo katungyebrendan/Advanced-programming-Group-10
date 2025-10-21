@@ -41,8 +41,8 @@
                 <select id="program_id" name="program_id" class="w-full border border-gray-300 rounded-md p-2 text-sm">
                     <option value="">All Programs</option>
                     @foreach($programs as $program)
-                        <option value="{{ $program->program_id }}" 
-                                {{ request('program_id') == $program->program_id ? 'selected' : '' }}>
+                        <option value="{{ $program->id }}" 
+                                {{ request('program_id') == $program->id ? 'selected' : '' }}>
                             {{ $program->name }}
                         </option>
                     @endforeach
@@ -54,8 +54,8 @@
                 <select id="facility_id" name="facility_id" class="w-full border border-gray-300 rounded-md p-2 text-sm">
                     <option value="">All Facilities</option>
                     @foreach($facilities as $facility)
-                        <option value="{{ $facility->facility_id }}" 
-                                {{ request('facility_id') == $facility->facility_id ? 'selected' : '' }}>
+                        <option value="{{ $facility->facility_id ?? $facility->id }}" 
+                                {{ (string)request('facility_id') === (string)($facility->facility_id ?? $facility->id) ? 'selected' : '' }}>
                             {{ $facility->name }}
                         </option>
                     @endforeach

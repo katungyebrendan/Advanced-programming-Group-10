@@ -61,4 +61,14 @@ class ProgramDomainService
         
         return ['success' => true];
     }
+
+    public function getAll(): array
+    {
+        return $this->programRepository->getAll();
+    }
+
+    public function findById(int $id): ?ProgramEntity
+    {
+        return $this->programRepository->findById($id);
+    }
 }
