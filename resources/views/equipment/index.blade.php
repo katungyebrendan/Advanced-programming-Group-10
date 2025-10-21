@@ -30,15 +30,15 @@
                 <tr>
                     <td class="border px-4 py-2">{{ $item->name }}</td>
                     <td class="border px-4 py-2">
-                        {{ $item->facility ? $item->facility->name : 'N/A' }}
+                        Facility ID: {{ $item->facilityId }}
                     </td>
                     <td class="border px-4 py-2">{{ $item->capabilities ?? '-' }}</td>
-                    <td class="border px-4 py-2">{{ $item->usage_domain ?? '-' }}</td>
-                    <td class="border px-4 py-2">{{ $item->support_phase ?? '-' }}</td>
+                    <td class="border px-4 py-2">{{ $item->usageDomain ?? '-' }}</td>
+                    <td class="border px-4 py-2">{{ $item->supportPhase ?? '-' }}</td>
                     <td class="border px-4 py-2 space-x-2">
-                        <a href="{{ route('equipment.show', $item) }}" class="text-blue-600 hover:underline">View</a>
-                        <a href="{{ route('equipment.edit', $item) }}" class="text-yellow-600 hover:underline">Edit</a>
-                        <form action="{{ route('equipment.destroy', $item) }}" method="POST" class="inline">
+                        <a href="{{ route('equipment.show', $item->id) }}" class="text-blue-600 hover:underline">View</a>
+                        <a href="{{ route('equipment.edit', $item->id) }}" class="text-yellow-600 hover:underline">Edit</a>
+                        <form action="{{ route('equipment.destroy', $item->id) }}" method="POST" class="inline">
                             @csrf
                             @method('DELETE')
                             <button type="submit" onclick="return confirm('Delete this equipment?')" class="text-red-600 hover:underline">Delete</button>
@@ -46,15 +46,9 @@
                     </td>
                 </tr>
             @empty
-                <tr>
-                    <td colspan="6" class="border px-4 py-2 text-center text-gray-500">No equipment registered yet.</td>
-                </tr>
+                <td colspan="6" class="border px-4 py-2 text-center text-gray-500">No equipment registered yet.</td>
             @endforelse
         </tbody>
     </table>
-
-    <div class="mt-4">
-        {{ $equipments->links() }}
-    </div>
 </div>
 @endsection

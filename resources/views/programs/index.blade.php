@@ -69,16 +69,16 @@
                     @endif
 
                     <div class="flex gap-2 mt-4">
-                        <a href="{{ route('programs.show', $program->program_id) }}" 
+                        <a href="{{ route('programs.show', $program->program_id ?? $program->id) }}" 
                            class="text-blue-600 hover:text-blue-800 text-sm font-medium">
                             View
                         </a>
-                        <a href="{{ route('programs.edit', $program->program_id) }}" 
+                        <a href="{{ route('programs.edit', $program->program_id ?? $program->id) }}" 
                            class="text-green-600 hover:text-green-800 text-sm font-medium">
                             Edit
                         </a>
-                        @if($program->canBeDeleted())
-                            <form action="{{ route('programs.destroy', $program->program_id) }}" 
+                        @if(method_exists($program,'canBeDeleted') ? $program->canBeDeleted() : true)
+                            <form action="{{ route('programs.destroy', $program->program_id ?? $program->id) }}" 
                                   method="POST" 
                                   class="inline"
                                   onsubmit="return confirm('Are you sure you want to delete this program?')">

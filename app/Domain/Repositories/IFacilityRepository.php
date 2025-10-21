@@ -8,6 +8,7 @@ interface IFacilityRepository
 {
     public function findById(int $id): ?FacilityEntity;
     public function existsByNameAndLocation(string $name, string $location): bool;
+    public function findByNameAndLocation(string $name, string $location): ?FacilityEntity;
     public function save(FacilityEntity $facility): FacilityEntity;
     public function delete(int $id): void;
     public function hasServices(int $facilityId): bool;

@@ -20,10 +20,9 @@ class CreateEquipmentTable extends Migration
             $table->text('description')->nullable();
             $table->string('inventory_code')->nullable();
 
-            $table->string('usage_domain')
-                  ->check("usage_domain IN ('Research','Teaching','Maintenance','Production')");
-            $table->string('support_phase')
-                  ->check("support_phase IN ('Planning','Implementation','Monitoring','Evaluation')");
+        // Allow domain layer and FormRequests to enforce allowed values
+        $table->string('usage_domain')->nullable();
+        $table->string('support_phase')->nullable();
 
             $table->timestamps();
         });

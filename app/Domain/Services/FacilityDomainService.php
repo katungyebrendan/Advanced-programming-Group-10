@@ -48,6 +48,12 @@ class FacilityDomainService
             }
         }
 
+        // Business Rule: Uniqueness (Name + Location combination) when updating
+        $existing = $this->facilityRepository->findByNameAndLocation($facility->name, $facility->location);
+        if ($existing && $existing->id !== $facility->id) {
+            return ['success' => false, 'errors' => ['A facility with this name already exists at this location.']];
+        }
+
         // Save facility
         $savedFacility = $this->facilityRepository->save($facility);
         
@@ -73,5 +79,15 @@ class FacilityDomainService
         $this->facilityRepository->delete($facilityId);
         
         return ['success' => true];
+    }
+
+    public function getAll(): array
+    {
+        return $this->facilityRepository->getAll();
+    }
+
+    public function findById(int $id): ?FacilityEntity
+    {
+        return $this->facilityRepository->findById($id);
     }
 }

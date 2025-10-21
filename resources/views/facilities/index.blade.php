@@ -35,24 +35,24 @@
         {{-- Table Body --}}
         @forelse ($facilities as $facility)
             <div class="grid grid-cols-[auto_1.5fr_1.5fr_1fr_1.5fr_1fr] items-center px-6 py-4 border-b border-gray-200 hover:bg-gray-100 transition-colors duration-200 gap-x-4">
-                <div>{{ $facility->facility_id }}</div>
+                <div>{{ $facility->id }}</div>
                 <div>{{ $facility->name }}</div>
                 <div>{{ $facility->location }}</div>
-                <div>{{ $facility->facility_type }}</div>
-                <div>{{ $facility->partner_organization ?? '-' }}</div>
+                <div>{{ $facility->facilityType }}</div>
+                <div>{{ $facility->partnerOrganization ?? '-' }}</div>
                 <div class="text-center">
                     {{-- Action buttons with vertical stacking and professional design --}}
                     <div class="flex flex-col items-center space-y-2">
-                        <a href="{{ route('facilities.show', $facility->facility_id) }}" 
+                        <a href="{{ route('facilities.show', $facility->id) }}" 
                            class="bg-blue-500 hover:bg-blue-600 text-white font-semibold py-1 px-4 rounded-lg transition duration-300 w-full text-center">
                             View
                         </a>
-                        <a href="{{ route('facilities.edit', $facility->facility_id) }}" 
+                        <a href="{{ route('facilities.edit', $facility->id) }}" 
                            class="bg-yellow-500 hover:bg-yellow-600 text-white font-semibold py-1 px-4 rounded-lg transition duration-300 w-full text-center">
                             Edit
                         </a>
                         {{-- Direct form for delete button --}}
-                        <form action="{{ route('facilities.destroy', $facility->facility_id) }}" method="POST" onsubmit="return confirm('Are you sure you want to delete this facility?');" class="w-full">
+                        <form action="{{ route('facilities.destroy', $facility->id) }}" method="POST" onsubmit="return confirm('Are you sure you want to delete this facility?');" class="w-full">
                             @csrf
                             @method('DELETE')
                             <button type="submit" 

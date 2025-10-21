@@ -4,7 +4,7 @@
 <div class="max-w-3xl mx-auto bg-white p-6 rounded shadow">
     <h1 class="text-2xl font-bold mb-4">Edit Equipment</h1>
 
-    <form action="{{ route('equipment.update', $equipment) }}" method="POST">
+    <form action="{{ route('equipment.update', $equipment->id) }}" method="POST">
         @csrf
         @method('PUT')
 
@@ -12,7 +12,7 @@
             <label class="block font-medium">Facility</label>
             <select name="facility_id" class="w-full border rounded p-2" required>
                 @foreach($facilities as $facility)
-                    <option value="{{ $facility->id }}" {{ $equipment->facility_id == $facility->id ? 'selected' : '' }}>
+                    <option value="{{ $facility->id }}" {{ $equipment->facilityId == $facility->id ? 'selected' : '' }}>
                         {{ $facility->name }}
                     </option>
                 @endforeach
@@ -36,7 +36,7 @@
 
         <div class="mb-4">
             <label class="block font-medium">Inventory Code</label>
-            <input type="text" name="inventory_code" class="w-full border rounded p-2" value="{{ $equipment->inventory_code }}">
+            <input type="text" name="inventory_code" class="w-full border rounded p-2" value="{{ $equipment->inventoryCode }}">
         </div>
 
         <div class="mb-4">
@@ -44,7 +44,7 @@
             <select name="usage_domain" class="w-full border rounded p-2">
                 <option value="">-- Select Domain --</option>
                 @foreach($usageDomains as $domain)
-                    <option value="{{ $domain }}" {{ $equipment->usage_domain == $domain ? 'selected' : '' }}>
+                    <option value="{{ $domain }}" {{ $equipment->usageDomain == $domain ? 'selected' : '' }}>
                         {{ $domain }}
                     </option>
                 @endforeach
@@ -56,7 +56,7 @@
             <select name="support_phase" class="w-full border rounded p-2">
                 <option value="">-- Select Phase --</option>
                 @foreach($supportPhases as $phase)
-                    <option value="{{ $phase }}" {{ $equipment->support_phase == $phase ? 'selected' : '' }}>
+                    <option value="{{ $phase }}" {{ $equipment->supportPhase == $phase ? 'selected' : '' }}>
                         {{ $phase }}
                     </option>
                 @endforeach

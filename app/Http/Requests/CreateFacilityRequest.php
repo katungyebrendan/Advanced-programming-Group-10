@@ -23,8 +23,8 @@ class CreateFacilityRequest extends FormRequest
             // Optional fields
             'description' => 'nullable|string',
             'partner_organization' => 'nullable|string|in:UniPod,UIRI,Lwera',
-            'capabilities' => 'nullable|array',
-            'capabilities.*' => 'string|max:100'
+            // Accept capabilities as nullable free-form input (comma-separated string from the form)
+            'capabilities' => 'nullable',
         ];
     }
 

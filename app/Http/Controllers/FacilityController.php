@@ -2,8 +2,10 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Facility;
 use Illuminate\Http\Request;
+use App\Models\Facility;
+use App\Domain\Entities\FacilityEntity;
+use App\Domain\Services\FacilityDomainService;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\CreateFacilityRequest;
 use App\Http\Requests\UpdateFacilityRequest;
@@ -11,13 +13,19 @@ use InvalidArgumentException;
 
 class FacilityController extends Controller
 {
+    private FacilityDomainService $facilityService;
+
+    public function __construct(FacilityDomainService $facilityService)
+    {
+        $this->facilityService = $facilityService;
+    }
     /**
      * Display a listing of the resource.
      */
     public function index()
     {
         // Return a view with a list of all facilities
-        $facilities = Facility::all();
+        $facilities = $this->facilityService->getAll();
         return view('facilities.index', compact('facilities'));
     }
 
@@ -35,17 +43,30 @@ class FacilityController extends Controller
      */
     public function store(CreateFacilityRequest $request)
     {
-        try {
-            // Create a new facility record using the validated data
-            $data = $request->validated();
-            Facility::create($data);
+        $data = $request->validated();
+        // Normalize capabilities: accept comma-separated string from form and convert to array
+        if (isset($data['capabilities']) && is_string($data['capabilities'])) {
+            $capabilities = array_filter(array_map('trim', explode(',', $data['capabilities'])));
+            $data['capabilities'] = array_values($capabilities);
+        }
+        $entity = new FacilityEntity(
+            id: null,
+            name: $data['name'] ?? '',
+            location: $data['location'] ?? '',
+            facilityType: $data['facility_type'] ?? '',
+            description: $data['description'] ?? null,
+            partnerOrganization: $data['partner_organization'] ?? null,
+            capabilities: $data['capabilities'] ?? []
+        );
 
-            // Redirect to the facilities list page with a success message
+        $result = $this->facilityService->createFacility($entity);
+
+        if ($result['success']) {
             return redirect()->route('facilities.index')
                              ->with('success', 'Facility created successfully.');
-        } catch (\Exception $e) {
-            return back()->withInput()->withErrors(['message' => 'Failed to create facility: ' . $e->getMessage()]);
         }
+
+        return back()->withInput()->withErrors(['message' => implode('; ', $result['errors'] ?? ['Failed to create facility'])]);
     }
 
     /**
@@ -53,7 +74,10 @@ class FacilityController extends Controller
      */
     public function show(int $id)
     {
-        $facility = Facility::findOrFail($id);
+        $facility = $this->facilityService->findById($id);
+        if (!$facility) {
+            return redirect()->route('facilities.index')->withErrors(['message' => 'Facility not found']);
+        }
         return view('facilities.show', compact('facility'));
     }
 
@@ -62,7 +86,10 @@ class FacilityController extends Controller
      */
     public function edit(int $id)
     {
-        $facility = Facility::findOrFail($id);
+        $facility = $this->facilityService->findById($id);
+        if (!$facility) {
+            return redirect()->route('facilities.index')->withErrors(['message' => 'Facility not found']);
+        }
         return view('facilities.edit', compact('facility'));
     }
 
@@ -71,16 +98,30 @@ class FacilityController extends Controller
      */
     public function update(UpdateFacilityRequest $request, int $id)
     {
-        try {
-            $facility = Facility::findOrFail($id);
-            $data = $request->validated();
-            $facility->update($data);
+        $data = $request->validated();
+        // Normalize capabilities: accept comma-separated string from form and convert to array
+        if (isset($data['capabilities']) && is_string($data['capabilities'])) {
+            $capabilities = array_filter(array_map('trim', explode(',', $data['capabilities'])));
+            $data['capabilities'] = array_values($capabilities);
+        }
+        $entity = new FacilityEntity(
+            id: $id,
+            name: $data['name'] ?? '',
+            location: $data['location'] ?? '',
+            facilityType: $data['facility_type'] ?? '',
+            description: $data['description'] ?? null,
+            partnerOrganization: $data['partner_organization'] ?? null,
+            capabilities: $data['capabilities'] ?? []
+        );
 
+        $result = $this->facilityService->updateFacility($entity);
+
+        if ($result['success']) {
             return redirect()->route('facilities.index')
                              ->with('success', 'Facility updated successfully.');
-        } catch (\Exception $e) {
-            return back()->withInput()->withErrors(['message' => 'Failed to update facility: ' . $e->getMessage()]);
         }
+
+        return back()->withInput()->withErrors(['message' => implode('; ', $result['errors'] ?? ['Failed to update facility'])]);
     }
 
     /**
@@ -88,17 +129,13 @@ class FacilityController extends Controller
      */
     public function destroy(int $id)
     {
-        try {
-            $facility = Facility::findOrFail($id);
-            if (!$facility->canBeDeleted()) {
-                return back()->withErrors(['message' => $facility->getDeletionBlockReason()]);
-            }
+        $result = $this->facilityService->deleteFacility($id);
 
-            $facility->delete();
+        if ($result['success']) {
             return redirect()->route('facilities.index')
                              ->with('success', 'Facility deleted successfully.');
-        } catch (\Exception $e) {
-            return back()->withErrors(['message' => 'Failed to delete facility']);
         }
+
+        return back()->withErrors(['message' => implode('; ', $result['errors'] ?? ['Failed to delete facility'])]);
     }
 }

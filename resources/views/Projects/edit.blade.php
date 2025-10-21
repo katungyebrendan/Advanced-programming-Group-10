@@ -15,7 +15,7 @@
         </div>
     @endif
 
-    <form action="{{ route('projects.update', $project->project_id) }}" method="POST">
+    <form action="{{ route('projects.update', $project->id ?? $project->project_id) }}" method="POST">
         @csrf
         @method('PUT')
 
@@ -33,34 +33,38 @@
                            required>
                 </div>
 
-                {{-- Program --}}
+                {{-- Program (by name) --}}
                 <div class="mb-4">
-                    <label for="program_id" class="block font-medium text-gray-700 mb-1">Program *</label>
-                    <select id="program_id" 
-                            name="program_id"
+                    <label for="program_name" class="block font-medium text-gray-700 mb-1">Program *</label>
+                    <select id="program_name" 
+                            name="program_name"
                             class="w-full border border-gray-300 rounded-md p-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                             required>
                         <option value="">Select a program...</option>
                         @foreach($programs as $program)
-                            <option value="{{ $program->program_id }}" 
-                                    {{ old('program_id', $project->program_id) == $program->program_id ? 'selected' : '' }}>
+                            <option value="{{ $program->name }}" 
+                                    {{ old('program_name') 
+                                        ? (old('program_name') === $program->name ? 'selected' : '') 
+                                        : ((($project->programId ?? $project->program_id ?? null) == ($program->program_id ?? $program->id)) ? 'selected' : '') }}>
                                 {{ $program->name }}
                             </option>
                         @endforeach
                     </select>
                 </div>
 
-                {{-- Facility --}}
+                {{-- Facility (by name) --}}
                 <div class="mb-4">
-                    <label for="facility_id" class="block font-medium text-gray-700 mb-1">Facility *</label>
-                    <select id="facility_id" 
-                            name="facility_id"
+                    <label for="facility_name" class="block font-medium text-gray-700 mb-1">Facility *</label>
+                    <select id="facility_name" 
+                            name="facility_name"
                             class="w-full border border-gray-300 rounded-md p-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                             required>
                         <option value="">Select a facility...</option>
                         @foreach($facilities as $facility)
-                            <option value="{{ $facility->facility_id }}" 
-                                    {{ old('facility_id', $project->facility_id) == $facility->facility_id ? 'selected' : '' }}>
+                            <option value="{{ $facility->name }}" 
+                                    {{ old('facility_name') 
+                                        ? (old('facility_name') === $facility->name ? 'selected' : '') 
+                                        : ((($project->facilityId ?? $project->facility_id ?? null) == ($facility->facility_id ?? $facility->id)) ? 'selected' : '') }}>
                                 {{ $facility->name }} - {{ $facility->location }}
                             </option>
                         @endforeach
@@ -77,7 +81,7 @@
                         <option value="">Select nature...</option>
                         @foreach(\App\Models\Project::NATURE_OPTIONS as $nature)
                             <option value="{{ $nature }}" 
-                                    {{ old('nature_of_project', $project->nature_of_project) == $nature ? 'selected' : '' }}>
+                                    {{ (old('nature_of_project', $project->nature_of_project ?? $project->natureOfProject)) == $nature ? 'selected' : '' }}>
                                 {{ $nature }}
                             </option>
                         @endforeach
@@ -94,7 +98,7 @@
                         <option value="">Select stage...</option>
                         @foreach(\App\Models\Project::PROTOTYPE_STAGES as $stage)
                             <option value="{{ $stage }}" 
-                                    {{ old('prototype_stage', $project->prototype_stage) == $stage ? 'selected' : '' }}>
+                                    {{ (old('prototype_stage', $project->prototype_stage ?? $project->prototypeStage)) == $stage ? 'selected' : '' }}>
                                 {{ $stage }}
                             </option>
                         @endforeach
@@ -113,7 +117,7 @@
                         <option value="">Select focus area...</option>
                         @foreach(\App\Models\Project::INNOVATION_FOCUS_OPTIONS as $focus)
                             <option value="{{ $focus }}" 
-                                    {{ old('innovation_focus', $project->innovation_focus) == $focus ? 'selected' : '' }}>
+                                    {{ (old('innovation_focus', $project->innovation_focus ?? $project->innovationFocus)) == $focus ? 'selected' : '' }}>
                                 {{ $focus }}
                             </option>
                         @endforeach
@@ -136,7 +140,7 @@
                     <textarea id="testing_requirements" 
                               name="testing_requirements"
                               class="w-full border border-gray-300 rounded-md p-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                              rows="3">{{ old('testing_requirements', $project->testing_requirements) }}</textarea>
+                              rows="3">{{ old('testing_requirements', $project->testing_requirements ?? $project->testingRequirements) }}</textarea>
                 </div>
 
                 {{-- Commercialization Plan --}}
@@ -145,7 +149,7 @@
                     <textarea id="commercialization_plan" 
                               name="commercialization_plan"
                               class="w-full border border-gray-300 rounded-md p-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                              rows="3">{{ old('commercialization_plan', $project->commercialization_plan) }}</textarea>
+                              rows="3">{{ old('commercialization_plan', $project->commercialization_plan ?? $project->commercializationPlan) }}</textarea>
                 </div>
             </div>
         </div>

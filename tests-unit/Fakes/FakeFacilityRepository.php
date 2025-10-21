@@ -33,6 +33,18 @@ class FakeFacilityRepository implements IFacilityRepository
         return false;
     }
 
+    public function findByNameAndLocation(string $name, string $location): ?FacilityEntity
+    {
+        $searchKey = strtolower($name . '|' . $location);
+        foreach ($this->facilities as $facility) {
+            if ($facility->getUniqueKey() === $searchKey) {
+                return $facility;
+            }
+        }
+
+        return null;
+    }
+
     public function save(FacilityEntity $facility): FacilityEntity
     {
         if ($facility->id === null) {

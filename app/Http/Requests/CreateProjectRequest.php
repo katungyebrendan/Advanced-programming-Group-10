@@ -15,9 +15,9 @@ class CreateProjectRequest extends FormRequest
     public function rules()
     {
         return [
-            // Required Associations Rule
-            'program_id' => 'required|exists:programs,program_id',
-            'facility_id' => 'required|exists:facilities,facility_id',
+            // Accept program and facility names instead of IDs from the interface
+            'program_name' => 'required|string|exists:programs,name',
+            'facility_name' => 'required|string|exists:facilities,name',
             'title' => 'required|string|max:255',
             
             // Optional fields
@@ -34,6 +34,29 @@ class CreateProjectRequest extends FormRequest
     public function withValidator($validator)
     {
         $validator->after(function ($validator) {
+            // Resolve program and facility names to IDs for domain processing
+            $programName = $this->input('program_name');
+            $facilityName = $this->input('facility_name');
+            
+            if ($programName) {
+                $program = \App\Models\Program::where('name', $programName)->first();
+                if (!$program) {
+                    $validator->errors()->add('program_name', 'Program not found.');
+                    return;
+                }
+                // Store resolved IDs for controller use
+                $this->merge(['program_id' => $program->program_id]);
+            }
+            
+            if ($facilityName) {
+                $facility = \App\Models\Facility::where('name', $facilityName)->first();
+                if (!$facility) {
+                    $validator->errors()->add('facility_name', 'Facility not found.');
+                    return;
+                }
+                $this->merge(['facility_id' => $facility->facility_id]);
+            }
+
             // Name Uniqueness Rule - Project name must be unique within a Program
             $programId = $this->input('program_id');
             $title = $this->input('title');
@@ -47,31 +70,17 @@ class CreateProjectRequest extends FormRequest
                     $validator->errors()->add('title', 'A project with this name already exists in this program.');
                 }
             }
-
-            // Facility Compatibility Rule (basic check - can be enhanced with more specific logic)
-            $facilityId = $this->input('facility_id');
-            $testingRequirements = $this->input('testing_requirements');
-            
-            if ($facilityId && $testingRequirements) {
-                // This is a simplified check - you might want to implement more sophisticated logic
-                // based on actual facility capabilities and testing requirements matching
-                $facility = \App\Models\Facility::find($facilityId);
-                if ($facility && empty($facility->capabilities)) {
-                    $validator->errors()->add('facility_id', 
-                        'Project requirements may not be compatible with facility capabilities.');
-                }
-            }
         });
     }
 
     public function messages()
     {
         return [
-            'program_id.required' => 'Project.ProgramId is required.',
-            'facility_id.required' => 'Project.FacilityId is required.',
+            'program_name.required' => 'Program name is required.',
+            'facility_name.required' => 'Facility name is required.',
+            'facility_name.exists' => 'Selected facility does not exist.',
             'title.required' => 'Project.Title is required.',
-            'program_id.exists' => 'Project.ProgramId must reference a valid program.',
-            'facility_id.exists' => 'Project.FacilityId must reference a valid facility.',
+            'program_name.exists' => 'Selected program does not exist.',
             'nature_of_project.in' => 'Invalid nature of project selected.',
             'prototype_stage.in' => 'Invalid prototype stage selected.',
             'status.in' => 'Invalid status selected.',
